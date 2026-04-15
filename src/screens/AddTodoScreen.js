@@ -381,13 +381,13 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16,
+    paddingHorizontal: 20, paddingTop: 58, paddingBottom: 18,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '700' },
-  scroll: { paddingHorizontal: 20 },
-  section: { marginBottom: 16 },
-  emojiTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 12 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
+  section: { marginBottom: 18 },
+  emojiTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 12 },
   emojiBtn: {
     width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1,
   },

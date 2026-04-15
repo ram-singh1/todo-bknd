@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, RefreshControl,
-  Dimensions, TouchableOpacity, Animated,
+  TouchableOpacity, Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import GlassCard from '../components/GlassCard';
-import GlassButton from '../components/GlassButton';
 import api from '../api/client';
 import { format } from 'date-fns';
-
-const { width } = Dimensions.get('window');
 
 const QUOTES = [
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
@@ -278,17 +274,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   greeting: { fontSize: 15, fontWeight: '500' },
-  userName: { fontSize: 28, fontWeight: '800', marginTop: 4 },
+  userName: { fontSize: 30, fontWeight: '800', marginTop: 4 },
   avatarButton: {
-    width: 46, height: 46, borderRadius: 16,
+    width: 52, height: 52, borderRadius: 16,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1,
   },
-  dateText: { fontSize: 13, marginBottom: 24, fontWeight: '500' },
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  statCard: { flex: 1, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 8 },
+  dateText: { fontSize: 13, marginBottom: 26, fontWeight: '500' },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginHorizontal: -6,
+    marginBottom: 22,
+  },
+  statCard: {
+    flexBasis: '48%',
+    marginHorizontal: 6,
+    marginBottom: 12,
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+  },
   statEmoji: { fontSize: 22, marginBottom: 6 },
   statNumber: { fontSize: 24, fontWeight: '800' },
   statLabel: { fontSize: 11, fontWeight: '600', marginTop: 2 },
@@ -301,8 +310,21 @@ const styles = StyleSheet.create({
   progressSubtext: { fontSize: 12, marginTop: 8 },
   quickActions: { marginBottom: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 14 },
-  actionRow: { flexDirection: 'row', gap: 10 },
-  actionCard: { flex: 1, alignItems: 'center', paddingVertical: 18 },
+  actionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginHorizontal: -6,
+    marginBottom: 12,
+  },
+  actionCard: {
+    flexBasis: '32%',
+    minWidth: 100,
+    marginHorizontal: 6,
+    marginBottom: 12,
+    alignItems: 'center',
+    paddingVertical: 18,
+  },
   actionEmoji: { fontSize: 28, marginBottom: 8 },
   actionText: { fontSize: 13, fontWeight: '600' },
   section: { marginBottom: 24 },

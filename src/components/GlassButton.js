@@ -19,8 +19,8 @@ export default function GlassButton({
   const { theme } = useTheme();
 
   const sizeStyles = {
-    small: { paddingVertical: 8, paddingHorizontal: 16, fontSize: 13, iconSize: 16 },
-    medium: { paddingVertical: 14, paddingHorizontal: 24, fontSize: 15, iconSize: 20 },
+    small: { paddingVertical: 10, paddingHorizontal: 18, fontSize: 13, iconSize: 16 },
+    medium: { paddingVertical: 16, paddingHorizontal: 26, fontSize: 15, iconSize: 20 },
     large: { paddingVertical: 18, paddingHorizontal: 32, fontSize: 17, iconSize: 22 },
   };
 
@@ -87,7 +87,7 @@ export default function GlassButton({
             paddingHorizontal: s.paddingHorizontal,
             borderColor: v.borderColor,
             borderWidth: v.borderColor !== 'transparent' ? 1 : 0,
-            opacity: disabled ? 0.5 : 1,
+            opacity: disabled ? 0.6 : 1,
           },
         ]}
       >
@@ -117,15 +117,16 @@ export default function GlassButton({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 16,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    minHeight: 52,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 5,
   },
   content: {
     flexDirection: 'row',

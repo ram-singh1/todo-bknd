@@ -123,8 +123,13 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 3,
   },
   icon: {
     marginLeft: 16,
@@ -134,6 +139,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
+    color: '#FFFFFF',
   },
   eyeIcon: {
     paddingRight: 16,
