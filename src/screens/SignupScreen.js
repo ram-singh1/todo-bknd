@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, KeyboardAvoidingView,
-  Platform, Alert, Dimensions, Animated,
+  Platform, Alert, Animated, TouchableOpacity,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import GlassButton from '../components/GlassButton';
@@ -17,6 +17,8 @@ export default function SignupScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [referral, setReferral] = useState('');
+  const [showReferral, setShowReferral] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -45,37 +47,41 @@ export default function SignupScreen({ navigation }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      await signup(name.trim(), email.trim().toLowerCase(), password);
+      await signup(
+        name.trim(),
+        email.trim().toLowerCase(),
+        password,
+        referral.trim() || undefined,
+      );
     } catch (error) {
-      Alert.alert('Signup Failed', error.message || 'Could not create account');
+      const msg = error?.response?.data?.message || error?.message || 'Could not create account';
+      Alert.alert('Signup Failed', msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient colors={theme.colors} style={styles.container}>
-      <View style={[styles.orb, { backgroundColor: `${theme.accent}20`, top: -30, left: -50, width: 200, height: 200 }]} />
-      <View style={[styles.orb, { backgroundColor: `${theme.primary}15`, bottom: 80, right: -40, width: 180, height: 180 }]} />
-
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+    <LiquidBackground>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
           <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <View style={[styles.iconWrap, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}>
-              <Text style={styles.headerEmoji}>🚀</Text>
+            <View style={[styles.logoRing, { borderColor: theme.glassBorder, backgroundColor: theme.glass }]}>
+              <Text style={styles.logoEmoji}>🚀</Text>
             </View>
             <Text style={[styles.title, { color: theme.text }]}>Create Account</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Start your journey to better productivity
+              Join thousands tracking what matters
             </Text>
           </Animated.View>
 
-          {/* Form */}
           <GlassCard variant="solid" style={styles.formCard}>
             <GlassInput
               label="Full Name"
@@ -106,8 +112,26 @@ export default function SignupScreen({ navigation }) {
               error={errors.password}
             />
 
+            {!showReferral ? (
+              <TouchableOpacity onPress={() => setShowReferral(true)} style={styles.referralToggle}>
+                <Ionicons name="gift-outline" size={16} color={theme.primary} />
+                <Text style={[styles.referralToggleText, { color: theme.primary }]}>
+                  Have a referral code?
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <GlassInput
+                label="Referral Code (optional)"
+                value={referral}
+                onChangeText={setReferral}
+                placeholder="ABCD1234"
+                icon="gift-outline"
+                autoCapitalize="characters"
+              />
+            )}
+
             <GlassButton
-              title="Create Account"
+              title={loading ? 'Creating...' : 'Create Account'}
               onPress={handleSignup}
               loading={loading}
               icon="person-add-outline"
@@ -115,16 +139,18 @@ export default function SignupScreen({ navigation }) {
               size="large"
               style={{ marginTop: 8 }}
             />
+
+            <Text style={[styles.termsText, { color: theme.textMuted }]}>
+              By signing up you agree to our Terms & Privacy Policy.
+            </Text>
           </GlassCard>
 
-          {/* Divider */}
           <View style={styles.divider}>
             <View style={[styles.dividerLine, { backgroundColor: theme.glassBorder }]} />
             <Text style={[styles.dividerText, { color: theme.textMuted }]}>OR</Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.glassBorder }]} />
           </View>
 
-          {/* Login link */}
           <GlassCard variant="light" onPress={() => navigation.navigate('Login')}>
             <View style={styles.linkRow}>
               <Text style={[styles.linkText, { color: theme.textSecondary }]}>
@@ -135,14 +161,13 @@ export default function SignupScreen({ navigation }) {
             </View>
           </GlassCard>
 
-          {/* Benefits */}
-          <View style={styles.benefitsSection}>
+          <View style={styles.benefits}>
             <Text style={[styles.benefitsTitle, { color: theme.textMuted }]}>WHAT YOU GET</Text>
             {[
-              { emoji: '🤖', title: 'AI-Powered Tasks', desc: 'Let AI plan your day' },
-              { emoji: '📔', title: 'Encrypted Diary', desc: 'Your thoughts, fully private' },
-              { emoji: '⏰', title: 'Smart Reminders', desc: 'Never miss anything important' },
-              { emoji: '🎨', title: '16 Beautiful Themes', desc: 'Personalize your experience' },
+              { emoji: '🎁', title: '7-Day Free Pro Trial', desc: 'Full premium, no card needed' },
+              { emoji: '📋', title: 'Smart Planning', desc: 'Fast task capture with helpful defaults' },
+              { emoji: '🔒', title: 'End-to-End Encrypted', desc: 'Your diary, only yours' },
+              { emoji: '✨', title: '17 Liquid Themes', desc: 'A vibe for every mood' },
             ].map((b, i) => (
               <View key={i} style={styles.benefitRow}>
                 <Text style={styles.benefitEmoji}>{b.emoji}</Text>
@@ -155,40 +180,40 @@ export default function SignupScreen({ navigation }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </LiquidBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  orb: { position: 'absolute', borderRadius: 999 },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    justifyContent: 'center',
-    paddingVertical: 50,
+    paddingVertical: 40,
   },
-  header: { alignItems: 'center', marginBottom: 28 },
-  iconWrap: {
+  header: { alignItems: 'center', marginBottom: 24, marginTop: 20 },
+  logoRing: {
     width: 80, height: 80, borderRadius: 24,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, marginBottom: 20,
+    borderWidth: 1, marginBottom: 16,
   },
-  headerEmoji: { fontSize: 40 },
-  title: { fontSize: 30, fontWeight: '800', marginBottom: 8 },
-  subtitle: { fontSize: 16, letterSpacing: 0.3, textAlign: 'center' },
-  formCard: { marginBottom: 20 },
-  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
+  logoEmoji: { fontSize: 38 },
+  title: { fontSize: 28, fontWeight: '800', marginBottom: 6 },
+  subtitle: { fontSize: 14, letterSpacing: 0.3, textAlign: 'center' },
+  formCard: { marginBottom: 16 },
+  referralToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingVertical: 8 },
+  referralToggleText: { fontSize: 13, fontWeight: '600' },
+  termsText: { fontSize: 11, textAlign: 'center', marginTop: 12 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 14 },
   dividerLine: { flex: 1, height: 1 },
-  dividerText: { marginHorizontal: 16, fontSize: 13, fontWeight: '600' },
+  dividerText: { marginHorizontal: 16, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
   linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  linkText: { fontSize: 15 },
-  linkAction: { fontSize: 15, fontWeight: '700' },
-  benefitsSection: { marginTop: 28 },
-  benefitsTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 16 },
-  benefitRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  benefitEmoji: { fontSize: 24, marginRight: 14 },
+  linkText: { fontSize: 14 },
+  linkAction: { fontSize: 14, fontWeight: '700' },
+  benefits: { marginTop: 24 },
+  benefitsTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 14, textAlign: 'center' },
+  benefitRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  benefitEmoji: { fontSize: 22, marginRight: 12 },
   benefitText: { flex: 1 },
-  benefitTitle: { fontSize: 15, fontWeight: '600' },
-  benefitDesc: { fontSize: 13, marginTop: 2 },
+  benefitTitle: { fontSize: 14, fontWeight: '700' },
+  benefitDesc: { fontSize: 12, marginTop: 1 },
 });

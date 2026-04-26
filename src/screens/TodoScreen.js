@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, RefreshControl,
-  TouchableOpacity, Alert, FlatList,
+  TouchableOpacity, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import { useTheme } from '../contexts/ThemeContext';
+import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
+import SwipeableRow from '../components/SwipeableRow';
+import SnoozeSheet from '../components/SnoozeSheet';
+import { cancelSmartRepeat } from '../utils/notifications';
 import api from '../api/client';
 import { categoryConfig, priorityConfig } from '../themes';
 import { format } from 'date-fns';
@@ -24,10 +29,17 @@ export default function TodoScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
+  const [snoozeTarget, setSnoozeTarget] = useState(null);
+
+  // Manual ordering only makes sense for the pending-all view; in any other
+  // filter we sort by created/due so users see a stable, sensible order.
+  const canReorder = filter === 'Pending' && category === 'all';
 
   const loadTodos = useCallback(async () => {
     try {
-      const params = { limit: 100, sortBy: 'createdAt', order: 'desc' };
+      const params = canReorder
+        ? { limit: 100, sortBy: 'order', order: 'asc' }
+        : { limit: 100, sortBy: 'createdAt', order: 'desc' };
       if (filter === 'Pending') params.completed = 'false';
       if (filter === 'Completed') params.completed = 'true';
       if (category !== 'all') params.category = category;
@@ -46,7 +58,13 @@ export default function TodoScreen({ navigation }) {
     } catch {} finally {
       setLoading(false);
     }
-  }, [filter, category]);
+  }, [filter, category, canReorder]);
+
+  const persistReorder = useCallback(async (data) => {
+    try {
+      await api.post('/todos/reorder', { ids: data.map((t) => t._id) });
+    } catch {}
+  }, []);
 
   useEffect(() => {
     loadTodos();
@@ -61,6 +79,11 @@ export default function TodoScreen({ navigation }) {
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await api.put(`/todos/${todo._id}`, { completed: !todo.completed });
+      // When marking complete, kill any pending smart-repeat nudges so the
+      // user isn't pinged about a task they've finished.
+      if (!todo.completed) {
+        cancelSmartRepeat(todo._id).catch(() => {});
+      }
       loadTodos();
     } catch {}
   };
@@ -74,6 +97,8 @@ export default function TodoScreen({ navigation }) {
         onPress: async () => {
           try {
             await api.delete(`/todos/${todo._id}`);
+            // Same cleanup on delete — orphan notifications are bad UX.
+            cancelSmartRepeat(todo._id).catch(() => {});
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             loadTodos();
           } catch {}
@@ -82,22 +107,54 @@ export default function TodoScreen({ navigation }) {
     ]);
   };
 
-  const aiPrioritize = async () => {
+  const snoozeTodo = async (mins) => {
+    if (!snoozeTarget) return;
+    const nowDue = snoozeTarget.dueDate ? new Date(snoozeTarget.dueDate) : new Date();
+    const newDue = new Date(Math.max(Date.now(), nowDue.getTime()) + mins * 60000);
     try {
-      const res = await api.post('/ai/prioritize');
-      Alert.alert('AI Suggestion', res.data.reasoning || 'Tasks reordered!');
+      const updates = { dueDate: newDue.toISOString() };
+      if (snoozeTarget.reminder?.enabled && snoozeTarget.reminder?.advanceMinutes != null) {
+        updates.reminder = {
+          ...snoozeTarget.reminder,
+          time: new Date(newDue.getTime() - snoozeTarget.reminder.advanceMinutes * 60000).toISOString(),
+          sent: false,
+        };
+      }
+      await api.put(`/todos/${snoozeTarget._id}`, updates);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       loadTodos();
-    } catch {
-      Alert.alert('Error', 'Could not prioritize tasks');
+    } catch {} finally {
+      setSnoozeTarget(null);
     }
   };
 
-  const renderTodo = ({ item: todo }) => {
+  // DraggableFlatList passes (item, drag, isActive). Plain map passes item.
+  // We support both signatures by destructuring with safe fallbacks.
+  const renderTodo = ({ item: todo, drag, isActive }) => {
     const cat = categoryConfig[todo.category] || categoryConfig.general;
     const pri = priorityConfig[todo.priority] || priorityConfig.medium;
     const isOverdue = !todo.completed && todo.dueDate && new Date(todo.dueDate) < new Date();
 
     return (
+      <SwipeableRow
+        onComplete={() => toggleComplete(todo)}
+        onDelete={() => deleteTodo(todo)}
+        completedLabel={todo.completed ? 'Undo' : 'Done'}
+      >
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onLongPress={() => {
+          // In reorder-able view: long-press starts drag. Elsewhere: snooze.
+          if (canReorder && drag) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            drag();
+          } else {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setSnoozeTarget(todo);
+          }
+        }}
+        style={isActive ? { opacity: 0.85, transform: [{ scale: 1.02 }] } : null}
+      >
       <GlassCard
         variant={todo.completed ? 'light' : 'default'}
         style={[styles.todoCard, isOverdue && { borderColor: theme.danger }]}
@@ -147,6 +204,14 @@ export default function TodoScreen({ navigation }) {
               {todo.reminder?.enabled && (
                 <Text style={[styles.reminderBadge, { color: theme.warning }]}>🔔</Text>
               )}
+              {todo.attachments?.length > 0 && (
+                <View style={[styles.attachBadge, { backgroundColor: `${theme.primary}25`, borderColor: `${theme.primary}55` }]}>
+                  <Ionicons name="attach" size={11} color={theme.primary} />
+                  <Text style={[styles.attachBadgeText, { color: theme.primary }]}>
+                    {todo.attachments.length}
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Subtasks progress */}
@@ -175,11 +240,13 @@ export default function TodoScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </GlassCard>
+      </TouchableOpacity>
+      </SwipeableRow>
     );
   };
 
   return (
-    <LinearGradient colors={theme.colors} style={styles.container}>
+    <LiquidBackground>
       <View style={styles.headerSection}>
         <View>
           <Text style={[styles.screenTitle, { color: theme.text }]}>My Tasks ✨</Text>
@@ -247,11 +314,21 @@ export default function TodoScreen({ navigation }) {
         })}
       </ScrollView>
 
-      {/* Todo List */}
-      <FlatList
+      {/* Todo List — drag-and-drop in the pending-all view */}
+      {canReorder && (
+        <Text style={[styles.reorderHint, { color: theme.textMuted }]}>
+          ↕ Long-press to drag · ← swipe to delete · → swipe to complete
+        </Text>
+      )}
+      <DraggableFlatList
         data={todos}
         renderItem={renderTodo}
         keyExtractor={(item) => item._id}
+        onDragEnd={({ data }) => {
+          setTodos(data);
+          if (canReorder) persistReorder(data);
+        }}
+        activationDistance={canReorder ? 8 : 9999}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -266,7 +343,7 @@ export default function TodoScreen({ navigation }) {
             <Text style={styles.emptyEmoji}>📋</Text>
             <Text style={[styles.emptyTitle, { color: theme.text }]}>No tasks yet</Text>
             <Text style={[styles.emptyText, { color: theme.textMuted }]}>
-              Tap + to create your first task, or let AI do it!
+              Tap + to create your first task.
             </Text>
           </View>
         }
@@ -274,12 +351,6 @@ export default function TodoScreen({ navigation }) {
 
       {/* Floating Actions */}
       <View style={styles.fabContainer}>
-        <TouchableOpacity
-          style={[styles.fabSecondary, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}
-          onPress={aiPrioritize}
-        >
-          <Text style={{ fontSize: 20 }}>🤖</Text>
-        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.fab]}
           onPress={() => navigation.navigate('AddTodo')}
@@ -292,7 +363,14 @@ export default function TodoScreen({ navigation }) {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+
+      <SnoozeSheet
+        visible={!!snoozeTarget}
+        onClose={() => setSnoozeTarget(null)}
+        onSnooze={snoozeTodo}
+        taskTitle={snoozeTarget?.title}
+      />
+    </LiquidBackground>
   );
 }
 
@@ -303,20 +381,26 @@ const styles = StyleSheet.create({
   statsText: { fontSize: 13, marginTop: 4, fontWeight: '500' },
   miniProgress: { height: 4, borderRadius: 2, marginTop: 10, overflow: 'hidden' },
   miniProgressFill: { height: '100%', borderRadius: 2 },
-  filterScroll: { maxHeight: 50, marginBottom: 4 },
-  filterContent: { paddingHorizontal: 20, gap: 8, alignItems: 'center' },
+  filterScroll: { flexGrow: 0, marginBottom: 10 },
+  filterContent: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 4 },
   filterPill: {
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1,
+    paddingHorizontal: 18, paddingVertical: 10, borderRadius: 22, borderWidth: 1,
+    minHeight: 38, alignItems: 'center', justifyContent: 'center',
   },
-  filterText: { fontSize: 13, fontWeight: '600' },
-  catScroll: { maxHeight: 46, marginBottom: 8 },
+  filterText: { fontSize: 13, fontWeight: '700' },
+  catScroll: { flexGrow: 0, marginBottom: 12 },
   catPill: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1,
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1,
+    minHeight: 36,
   },
-  catEmoji: { fontSize: 14, marginRight: 4 },
-  catText: { fontSize: 12, fontWeight: '600' },
+  catEmoji: { fontSize: 14, marginRight: 5 },
+  catText: { fontSize: 12, fontWeight: '700' },
   listContent: { paddingHorizontal: 20, paddingBottom: 120 },
+  reorderHint: {
+    fontSize: 11, fontWeight: '600', textAlign: 'center',
+    marginBottom: 8, paddingHorizontal: 20,
+  },
   todoCard: { marginBottom: 10 },
   todoRow: { flexDirection: 'row', alignItems: 'flex-start' },
   checkbox: {
@@ -332,6 +416,12 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 11, fontWeight: '600' },
   dueDate: { fontSize: 11, fontWeight: '500' },
   reminderBadge: { fontSize: 14 },
+  attachBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 2,
+    paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: 8, borderWidth: 1,
+  },
+  attachBadgeText: { fontSize: 10, fontWeight: '800' },
   subtaskRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
   subtaskBar: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
   subtaskFill: { height: '100%', borderRadius: 2 },

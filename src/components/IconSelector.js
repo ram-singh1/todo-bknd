@@ -34,7 +34,7 @@ export default function IconSelector({ visible, onClose, onSelect }) {
         onPress={onClose}
       />
       <View style={[styles.sheet, { backgroundColor: theme.surface, borderTopColor: theme.glassBorder }]}>
-        <View style={styles.handle} />
+        <View style={[styles.handle, { backgroundColor: theme.mode === 'light' ? 'rgba(15,23,42,0.2)' : 'rgba(255,255,255,0.2)' }]} />
         <Text style={[styles.title, { color: theme.text }]}>Choose Icon</Text>
         <FlatList
           data={ICON_SETS}
@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     alignSelf: 'center',
     marginBottom: 16,
   },

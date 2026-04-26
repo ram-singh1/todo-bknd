@@ -64,6 +64,8 @@ export default function GlassInput({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           maxLength={maxLength}
+          underlineColorAndroid="transparent"
+          selectionColor={theme.primary}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           style={[
@@ -124,12 +126,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 18,
+    // Clip native TextInput's default background/underline to the rounded
+    // corners. Inputs stay flat — no elevation — so there's no Android
+    // shadow-clipping artifact to worry about.
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 12,
-    elevation: 3,
   },
   icon: {
     marginLeft: 16,

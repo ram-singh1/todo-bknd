@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, KeyboardAvoidingView,
-  Platform, TouchableOpacity, Alert, Dimensions, Animated,
+  Platform, Alert, Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import GlassButton from '../components/GlassButton';
-
-const { width } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }) {
   const { theme } = useTheme();
@@ -23,33 +21,12 @@ export default function LoginScreen({ navigation }) {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const orb1Anim = useRef(new Animated.Value(0)).current;
-  const orb2Anim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
-      ])
-    ).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orb1Anim, { toValue: 1, duration: 6000, useNativeDriver: true }),
-        Animated.timing(orb1Anim, { toValue: 0, duration: 6000, useNativeDriver: true }),
-      ])
-    ).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orb2Anim, { toValue: 1, duration: 8000, useNativeDriver: true }),
-        Animated.timing(orb2Anim, { toValue: 0, duration: 8000, useNativeDriver: true }),
-      ])
-    ).start();
   }, []);
 
   const validate = () => {
@@ -68,21 +45,18 @@ export default function LoginScreen({ navigation }) {
     try {
       await login(email.trim().toLowerCase(), password);
     } catch (error) {
-      Alert.alert('Login Failed', error.message || 'Invalid credentials');
+      const msg = error?.response?.data?.message || error?.message || 'Invalid credentials';
+      Alert.alert('Login Failed', msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient colors={theme.colors} style={styles.container}>
-      {/* Animated decorative orbs */}
-      <Animated.View style={[styles.orb, { backgroundColor: `${theme.primary}20`, top: -40, right: -60, width: 200, height: 200, transform: [{ translateY: orb1Anim.interpolate({ inputRange: [0, 1], outputRange: [0, 20] }) }] }]} />
-      <Animated.View style={[styles.orb, { backgroundColor: `${theme.secondary}15`, bottom: 50, left: -40, width: 160, height: 160, transform: [{ translateX: orb2Anim.interpolate({ inputRange: [0, 1], outputRange: [0, 15] }) }] }]} />
-
+    <LiquidBackground>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -91,10 +65,10 @@ export default function LoginScreen({ navigation }) {
         >
           {/* Header */}
           <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-            <Animated.View style={[styles.iconWrap, { backgroundColor: theme.glass, borderColor: theme.glassBorder, transform: [{ scale: pulseAnim }] }]}>
-              <Text style={styles.headerEmoji}>👋</Text>
-            </Animated.View>
-            <Text style={[styles.title, { color: theme.text }]}>Welcome Back!</Text>
+            <View style={[styles.logoRing, { borderColor: theme.glassBorder, backgroundColor: theme.glass }]}>
+              <Text style={styles.logoEmoji}>✨</Text>
+            </View>
+            <Text style={[styles.title, { color: theme.text }]}>Welcome Back</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
               Sign in to continue your journey
             </Text>
@@ -123,7 +97,7 @@ export default function LoginScreen({ navigation }) {
             />
 
             <GlassButton
-              title="Sign In"
+              title={loading ? 'Signing in...' : 'Sign In'}
               onPress={handleLogin}
               loading={loading}
               icon="log-in-outline"
@@ -141,107 +115,67 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           {/* Sign up link */}
-          <GlassCard variant="light" onPress={() => navigation.navigate('Signup')} style={styles.signupCard}>
-            <View style={styles.signupRow}>
-              <Text style={[styles.signupText, { color: theme.textSecondary }]}>
-                Don't have an account?
+          <GlassCard variant="light" onPress={() => navigation.navigate('Signup')}>
+            <View style={styles.linkRow}>
+              <Text style={[styles.linkText, { color: theme.textSecondary }]}>
+                New here?
               </Text>
-              <Text style={[styles.signupLink, { color: theme.primary }]}> Create one</Text>
+              <Text style={[styles.linkAction, { color: theme.primary }]}> Create an account</Text>
               <Ionicons name="arrow-forward" size={16} color={theme.primary} style={{ marginLeft: 4 }} />
             </View>
           </GlassCard>
 
-          {/* Features */}
-          <View style={styles.features}>
+          {/* Feature chips */}
+          <View style={styles.chips}>
             {[
-              { icon: '🤖', text: 'AI Task Generation' },
-              { icon: '🔒', text: 'Encrypted Diary' },
-              { icon: '🔔', text: 'Smart Reminders' },
-            ].map((f, i) => (
+              { icon: '📋', text: 'Smart Tasks' },
+              { icon: '🔒', text: 'Encrypted' },
+              { icon: '✨', text: '17 Themes' },
+            ].map((c, i) => (
               <View
                 key={i}
-                style={[styles.featureItem, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}
+                style={[styles.chip, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}
               >
-                <Text style={styles.featureIcon}>{f.icon}</Text>
-                <Text style={[styles.featureText, { color: theme.textSecondary }]}>{f.text}</Text>
+                <Text style={styles.chipIcon}>{c.icon}</Text>
+                <Text style={[styles.chipText, { color: theme.textSecondary }]}>{c.text}</Text>
               </View>
             ))}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </LiquidBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  orb: { position: 'absolute', borderRadius: 999 },
-  keyboardView: { flex: 1 },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 50,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
-    paddingTop: 12,
+  header: { alignItems: 'center', marginBottom: 26 },
+  logoRing: {
+    width: 84, height: 84, borderRadius: 28,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, marginBottom: 18,
   },
-  iconWrap: {
-    width: 84,
-    height: 84,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    marginBottom: 24,
-  },
-  headerEmoji: { fontSize: 40 },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    letterSpacing: 0.3,
-  },
-  formCard: {
-    marginBottom: 20,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 18,
-  },
+  logoEmoji: { fontSize: 40 },
+  title: { fontSize: 30, fontWeight: '800', marginBottom: 6 },
+  subtitle: { fontSize: 15, letterSpacing: 0.3, textAlign: 'center' },
+  formCard: { marginBottom: 18 },
+  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 14 },
   dividerLine: { flex: 1, height: 1 },
-  dividerText: { marginHorizontal: 16, fontSize: 13, fontWeight: '600' },
-  signupCard: {
-    marginBottom: 24,
+  dividerText: { marginHorizontal: 16, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
+  linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  linkText: { fontSize: 14 },
+  linkAction: { fontSize: 14, fontWeight: '700' },
+  chips: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', marginTop: 18, gap: 8 },
+  chip: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 8,
+    borderRadius: 999, borderWidth: 1,
   },
-  signupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  signupText: { fontSize: 15 },
-  signupLink: { fontSize: 15, fontWeight: '700' },
-  features: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 22,
-    borderWidth: 1,
-    margin: 4,
-  },
-  featureIcon: { fontSize: 14, marginRight: 6 },
-  featureText: { fontSize: 12, fontWeight: '500' },
+  chipIcon: { fontSize: 14, marginRight: 6 },
+  chipText: { fontSize: 13, fontWeight: '600' },
 });

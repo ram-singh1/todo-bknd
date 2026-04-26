@@ -1,20 +1,66 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, KeyboardAvoidingView,
   Platform, Alert, TouchableOpacity, Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../contexts/ThemeContext';
+import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import GlassButton from '../components/GlassButton';
 import EmojiPicker from '../components/EmojiPicker';
+import PressScale from '../components/PressScale';
 import api from '../api/client';
 import { moodConfig, diaryColors } from '../themes';
+import { format } from 'date-fns';
 
-export default function AddDiaryScreen({ navigation }) {
+// Pre-built templates. Apply via the chips on the form OR by navigating to
+// AddDiary with route.params.template = '<key>'.
+const TEMPLATES = {
+  gratitude: {
+    name: 'Gratitude',
+    emoji: '🙏',
+    color: '#F59E0B',
+    mood: 'grateful',
+    tags: ['gratitude'],
+    title: () => `Gratitude · ${format(new Date(), 'MMM d')}`,
+    body: () =>
+      `Three things I'm grateful for today:\n\n1. \n2. \n3. \n\n` +
+      `One person I appreciated:\n\n` +
+      `One small win:\n`,
+  },
+  reflection: {
+    name: 'Daily reflection',
+    emoji: '🌙',
+    color: '#8B5CF6',
+    mood: 'neutral',
+    tags: ['reflection'],
+    title: () => `Daily reflection · ${format(new Date(), 'MMM d')}`,
+    body: () =>
+      `What went well today:\n\n\n` +
+      `What didn't go well:\n\n\n` +
+      `What I learned:\n\n\n` +
+      `One thing I'll do differently tomorrow:\n`,
+  },
+  workout: {
+    name: 'Workout log',
+    emoji: '💪',
+    color: '#10B981',
+    mood: 'amazing',
+    tags: ['workout'],
+    title: () => `Workout · ${format(new Date(), 'MMM d')}`,
+    body: () =>
+      `Type:\n\n` +
+      `Duration:\n\n` +
+      `Exercises:\n - \n - \n - \n\n` +
+      `How I felt:\n\n` +
+      `Energy 1-10:\n`,
+  },
+};
+
+export default function AddDiaryScreen({ navigation, route }) {
   const { theme } = useTheme();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -27,6 +73,42 @@ export default function AddDiaryScreen({ navigation }) {
   const [fontStyle, setFontStyle] = useState('default');
   const [loading, setLoading] = useState(false);
   const [writingLang, setWritingLang] = useState('en');
+
+  const applyTemplate = (key) => {
+    const t = TEMPLATES[key];
+    if (!t) return;
+    Haptics.selectionAsync();
+    // Don't clobber non-empty user content — confirm first.
+    const hasUserContent = title.trim() || content.trim();
+    const apply = () => {
+      setTitle(t.title());
+      setContent(t.body());
+      setMood(t.mood);
+      setSelectedColor(t.color);
+      setTags(t.tags.join(', '));
+    };
+    if (hasUserContent) {
+      Alert.alert('Use template?', 'This will replace what you\'ve written.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Use template', onPress: apply },
+      ]);
+    } else {
+      apply();
+    }
+  };
+
+  // Apply a template if requested via navigation params.
+  useEffect(() => {
+    const key = route?.params?.template;
+    if (key && TEMPLATES[key]) {
+      const t = TEMPLATES[key];
+      setTitle(t.title());
+      setContent(t.body());
+      setMood(t.mood);
+      setSelectedColor(t.color);
+      setTags(t.tags.join(', '));
+    }
+  }, [route?.params?.template]);
 
   // Writing prompts to inspire
   const writingPrompts = [
@@ -96,7 +178,7 @@ export default function AddDiaryScreen({ navigation }) {
   };
 
   return (
-    <LinearGradient colors={theme.colors} style={styles.container}>
+    <LiquidBackground>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -214,6 +296,21 @@ export default function AddDiaryScreen({ navigation }) {
               ))}
             </View>
 
+            {/* Templates */}
+            <Text style={[styles.tplLabel, { color: theme.textMuted }]}>QUICK START</Text>
+            <View style={styles.tplRow}>
+              {Object.entries(TEMPLATES).map(([key, t]) => (
+                <PressScale
+                  key={key}
+                  style={[styles.tplChip, { backgroundColor: `${t.color}1A`, borderColor: `${t.color}55` }]}
+                  onPress={() => applyTemplate(key)}
+                >
+                  <Text style={styles.tplEmoji}>{t.emoji}</Text>
+                  <Text style={[styles.tplText, { color: theme.text }]}>{t.name}</Text>
+                </PressScale>
+              ))}
+            </View>
+
             {/* Writing prompt inspiration */}
             <GlassCard variant="frosted" style={styles.promptCard}>
               <Text style={[styles.promptText, { color: theme.textSecondary }]}>
@@ -322,7 +419,7 @@ export default function AddDiaryScreen({ navigation }) {
         onClose={() => setShowEmojiPicker(false)}
         onSelect={(emoji) => setEmojis([...emojis, emoji])}
       />
-    </LinearGradient>
+    </LiquidBackground>
   );
 }
 
@@ -358,6 +455,15 @@ const styles = StyleSheet.create({
   langText: { fontSize: 11, fontWeight: '600' },
   promptCard: { marginBottom: 12, padding: 12 },
   promptText: { fontSize: 13, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
+  tplLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8, marginTop: 4 },
+  tplRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  tplChip: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, paddingVertical: 10, paddingHorizontal: 8,
+    borderRadius: 14, borderWidth: 1,
+  },
+  tplEmoji: { fontSize: 16 },
+  tplText: { fontSize: 12, fontWeight: '800' },
   emojiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   addEmojiBtn: { fontSize: 14, fontWeight: '600' },
   emojiDisplay: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },

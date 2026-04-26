@@ -3,13 +3,12 @@ import {
   StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert,
   Platform, Animated, Share,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../contexts/ThemeContext';
+import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
-import GlassButton from '../components/GlassButton';
 import api from '../api/client';
 import { moodConfig } from '../themes';
 import { format } from 'date-fns';
@@ -21,8 +20,6 @@ export default function DiaryDetailScreen({ navigation, route }) {
   const [entry, setEntry] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [analysis, setAnalysis] = useState(null);
-  const [analyzing, setAnalyzing] = useState(false);
   const [voiceLang, setVoiceLang] = useState('en');
   const [voiceSpeed, setVoiceSpeed] = useState('normal');
   const [showVoiceOptions, setShowVoiceOptions] = useState(false);
@@ -90,19 +87,6 @@ export default function DiaryDetailScreen({ navigation, route }) {
     });
   };
 
-  const analyzeWithAI = async () => {
-    setAnalyzing(true);
-    try {
-      const res = await api.post('/ai/analyze-diary', { entryId: id });
-      setAnalysis(res.data.analysis);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      Alert.alert('Error', 'Could not analyze entry');
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
   const shareEntry = async () => {
     if (!entry) return;
     try {
@@ -140,9 +124,11 @@ export default function DiaryDetailScreen({ navigation, route }) {
 
   if (loading || !entry) {
     return (
-      <LinearGradient colors={theme.colors} style={[styles.container, styles.centered]}>
-        <Text style={[styles.loadingText, { color: theme.textMuted }]}>Loading...</Text>
-      </LinearGradient>
+      <LiquidBackground>
+        <View style={[styles.container, styles.centered]}>
+          <Text style={[styles.loadingText, { color: theme.textMuted }]}>Loading...</Text>
+        </View>
+      </LiquidBackground>
     );
   }
 
@@ -159,7 +145,7 @@ export default function DiaryDetailScreen({ navigation, route }) {
   };
 
   return (
-    <LinearGradient colors={theme.colors} style={styles.container}>
+    <LiquidBackground>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => { Speech.stop(); navigation.goBack(); }} style={styles.backBtn}>
@@ -271,7 +257,7 @@ export default function DiaryDetailScreen({ navigation, route }) {
           </TouchableOpacity>
 
           {showVoiceOptions && (
-            <View style={styles.voiceOptions}>
+            <View style={[styles.voiceOptions, { borderTopColor: theme.glassBorder }]}>
               {/* Language selector */}
               <Text style={[styles.voiceLabel, { color: theme.textSecondary }]}>LANGUAGE</Text>
               <View style={styles.voicePillRow}>
@@ -325,55 +311,6 @@ export default function DiaryDetailScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* AI Analysis */}
-        {!analysis ? (
-          <GlassButton
-            title="🤖 Analyze with AI"
-            onPress={analyzeWithAI}
-            loading={analyzing}
-            variant="glass"
-            fullWidth
-            style={{ marginTop: 16 }}
-          />
-        ) : (
-          <GlassCard variant="accent" style={styles.analysisCard} glow>
-            <Text style={[styles.analysisTitle, { color: theme.primary }]}>🤖 AI Analysis</Text>
-
-            {analysis.sentiment && (
-              <View style={styles.analysisRow}>
-                <Text style={[styles.analysisLabel, { color: theme.textSecondary }]}>Sentiment</Text>
-                <Text style={[styles.analysisValue, { color: theme.text }]}>{analysis.sentiment}</Text>
-              </View>
-            )}
-
-            {analysis.keywords?.length > 0 && (
-              <View style={styles.analysisRow}>
-                <Text style={[styles.analysisLabel, { color: theme.textSecondary }]}>Keywords</Text>
-                <View style={styles.keywordsRow}>
-                  {analysis.keywords.map((kw, i) => (
-                    <View key={i} style={[styles.keyword, { backgroundColor: `${theme.primary}20` }]}>
-                      <Text style={[styles.keywordText, { color: theme.primary }]}>{kw}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {analysis.summary && (
-              <View style={styles.analysisRow}>
-                <Text style={[styles.analysisLabel, { color: theme.textSecondary }]}>Summary</Text>
-                <Text style={[styles.analysisSummary, { color: theme.text }]}>{analysis.summary}</Text>
-              </View>
-            )}
-
-            {analysis.affirmation && (
-              <View style={[styles.affirmation, { backgroundColor: `${theme.success}15` }]}>
-                <Text style={[styles.affirmationText, { color: theme.success }]}>{analysis.affirmation}</Text>
-              </View>
-            )}
-          </GlassCard>
-        )}
-
         {/* Stats */}
         <View style={styles.statsRow}>
           <GlassCard variant="light" style={styles.statItem}>
@@ -395,7 +332,7 @@ export default function DiaryDetailScreen({ navigation, route }) {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </LinearGradient>
+    </LiquidBackground>
   );
 }
 
@@ -436,7 +373,7 @@ const styles = StyleSheet.create({
   soundBar: { width: 3, borderRadius: 2 },
   voiceToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, alignSelf: 'center' },
   voiceToggleText: { fontSize: 12, fontWeight: '600' },
-  voiceOptions: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  voiceOptions: { marginTop: 12, paddingTop: 12, borderTopWidth: 1 },
   voiceLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 8 },
   voicePillRow: { flexDirection: 'row', gap: 8 },
   voicePill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1, gap: 6 },

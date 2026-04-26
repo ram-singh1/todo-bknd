@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import api from '../api/client';
 import { moodConfig } from '../themes';
@@ -137,7 +138,7 @@ export default function DiaryScreen({ navigation }) {
   };
 
   return (
-    <LinearGradient colors={theme.colors} style={styles.container}>
+    <LiquidBackground>
       {/* Header */}
       <Animated.View style={[styles.headerSection, { opacity: headerFade }]}>
         <Text style={[styles.screenTitle, { color: theme.text }]}>My Diary 📔</Text>
@@ -252,7 +253,7 @@ export default function DiaryScreen({ navigation }) {
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
-    </LinearGradient>
+    </LiquidBackground>
   );
 }
 

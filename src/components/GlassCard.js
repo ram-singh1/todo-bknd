@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
@@ -8,8 +8,8 @@ import Animated, {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLiquidMotion } from '../contexts/LiquidMotionContext';
 
-// Large enough to overflow card bounds after tilt translation — clipped by overflow:hidden
-const SHIMMER_SIZE = 500;
+// Large enough to drift a bit past card bounds; clipped by the card's overflow:hidden.
+const SHIMMER_SIZE = 420;
 
 export default function GlassCard({
   children,
@@ -25,178 +25,183 @@ export default function GlassCard({
 
   const variants = {
     default: {
-      background: theme.glass,
-      border: theme.glassBorder,
-      gradientColors: [`${theme.primary}08`, `${theme.secondary}05`, 'transparent'],
+      background: theme.mode === 'light' ? 'rgba(255,255,255,0.82)' : withAlpha(theme.card, 0.88),
+      border: theme.mode === 'light' ? 'rgba(15,23,42,0.10)' : theme.glassBorder,
+      gradientColors: [`${theme.primary}10`, `${theme.secondary}08`, 'transparent'],
     },
     light: {
-      background: theme.glassLight,
-      border: 'rgba(255, 255, 255, 0.12)',
-      gradientColors: ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.02)', 'transparent'],
+      background: theme.mode === 'light' ? 'rgba(255,255,255,0.72)' : withAlpha(theme.surface, 0.78),
+      border: theme.mode === 'light' ? 'rgba(15,23,42,0.09)' : 'rgba(255, 255, 255, 0.10)',
+      gradientColors: theme.mode === 'light'
+        ? ['rgba(255,255,255,0.34)', 'rgba(255,255,255,0.10)', 'transparent']
+        : ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.02)', 'transparent'],
     },
     solid: {
-      background: theme.card,
-      border: theme.glassBorder,
-      gradientColors: [`${theme.primary}06`, 'transparent', 'transparent'],
+      background: theme.mode === 'light' ? 'rgba(255,255,255,0.92)' : withAlpha(theme.card, 0.96),
+      border: theme.mode === 'light' ? 'rgba(15,23,42,0.11)' : theme.glassBorder,
+      gradientColors: [`${theme.primary}08`, 'transparent', 'transparent'],
     },
     accent: {
-      background: `${theme.primary}15`,
-      border: `${theme.primary}40`,
-      gradientColors: [`${theme.primary}12`, `${theme.secondary}08`, 'transparent'],
+      background: `${theme.primary}26`,
+      border: `${theme.primary}45`,
+      gradientColors: [`${theme.primary}14`, `${theme.secondary}0C`, 'transparent'],
     },
     frosted: {
-      background: 'rgba(255, 255, 255, 0.05)',
-      border: 'rgba(255, 255, 255, 0.15)',
-      gradientColors: ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)', 'transparent'],
+      background: theme.mode === 'light' ? 'rgba(255,255,255,0.62)' : withAlpha(theme.surface, 0.65),
+      border: theme.mode === 'light' ? 'rgba(15,23,42,0.09)' : 'rgba(255, 255, 255, 0.14)',
+      gradientColors: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)', 'transparent'],
     },
   };
 
   const v = variants[variant] || variants.default;
 
-  // --- Liquid motion animated styles ---
-
-  // Outer wrapper: shadow glides with tilt, flares on shake
-  const outerGlowStyle = useAnimatedStyle(() => {
-    if (!motion || !liquid) {
-      return glow
-        ? {
-            shadowColor: theme.primary,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.35,
-            shadowRadius: 20,
-            elevation: 10,
-          }
-        : {};
+  // No card shadow. On Android, elevation + a tinted shadowColor renders a
+  // solid-colored rectangle behind the card (not a soft blur), which looked
+  // like a duplicate box on every screen. Cards read cleanly from the
+  // background via backgroundColor + border alone.
+  const shadowStyle = useAnimatedStyle(() => {
+    if (Platform.OS === 'android' || !glow) {
+      return {};
     }
-    const { tiltX, tiltY, shakeIntensity } = motion;
+    // iOS only: a soft black shadow for `glow` cards (e.g. trial banner,
+    // paywall sheet). Never primary-tinted, never animated.
+    if (!motion || !liquid) {
+      return {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.18,
+        shadowRadius: 16,
+      };
+    }
     return {
-      shadowColor: theme.primary,
-      shadowOffset: {
-        width: tiltX.value * 14,
-        height: -tiltY.value * 14,
-      },
-      shadowOpacity: interpolate(
-        shakeIntensity.value,
-        [0, 1],
-        [glow ? 0.38 : 0.22, 0.85]
-      ),
-      shadowRadius: interpolate(
-        shakeIntensity.value,
-        [0, 1],
-        [glow ? 20 : 14, 32]
-      ),
-      elevation: interpolate(
-        shakeIntensity.value,
-        [0, 1],
-        [glow ? 10 : 6, 20]
-      ),
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: interpolate(motion.shakeIntensity.value, [0, 1], [0.18, 0.32]),
+      shadowRadius: interpolate(motion.shakeIntensity.value, [0, 1], [16, 22]),
     };
   });
 
-  // Inner shimmer blob drifts with tilt — clipped by card overflow:hidden
   const shimmerStyle = useAnimatedStyle(() => {
     if (!motion || !liquid) return {};
     const { tiltX, tiltY } = motion;
     return {
       transform: [
-        { translateX: tiltX.value * 40 },
-        { translateY: -tiltY.value * 40 },
+        { translateX: tiltX.value * 24 },
+        { translateY: -tiltY.value * 24 },
       ],
     };
   });
 
-  // Border pulse opacity surges on shake
   const borderPulseStyle = useAnimatedStyle(() => {
     if (!motion || !liquid) return { opacity: 0 };
     return {
-      opacity: interpolate(motion.shakeIntensity.value, [0, 0.25, 1], [0, 0.55, 1]),
+      opacity: interpolate(motion.shakeIntensity.value, [0, 0.25, 1], [0, 0.4, 0.8]),
     };
   });
 
-  const cardContent = (
-    <Animated.View style={[styles.cardOuter, outerGlowStyle, style]}>
+  // Single-view card: shadow + clipping + user style all on one node, so
+  // layout props (flexDirection, padding, alignItems) from the caller
+  // actually affect the content container.
+  const cardNode = (
+    <Animated.View
+      style={[
+        styles.card,
+        {
+          backgroundColor: v.background,
+          borderColor: v.border,
+        },
+        noPadding && { padding: 0 },
+        shadowStyle,
+        style,
+      ]}
+    >
+      <LinearGradient
+        colors={v.gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+
       <View
-        style={[
-          styles.card,
-          {
-            backgroundColor: v.background,
-            borderColor: v.border,
-          },
-          noPadding && { padding: 0 },
-        ]}
-      >
-        {/* Base gradient sheen */}
-        <LinearGradient
-          colors={v.gradientColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
+        style={[styles.topHighlight, { backgroundColor: `${theme.primary}18` }]}
+        pointerEvents="none"
+      />
+
+      {liquid && motion && (
+        <Animated.View
+          style={[styles.shimmerContainer, shimmerStyle]}
           pointerEvents="none"
-        />
-
-        {/* Static top-edge highlight */}
-        <View
-          style={[styles.topHighlight, { backgroundColor: `${theme.primary}10` }]}
-          pointerEvents="none"
-        />
-
-        {/* Liquid shimmer — large gradient blob that drifts with tilt */}
-        {liquid && motion && (
-          <Animated.View
-            style={[styles.shimmerContainer, shimmerStyle]}
-            pointerEvents="none"
-          >
-            <LinearGradient
-              colors={[
-                'transparent',
-                `${theme.primary}18`,
-                `${theme.secondary}28`,
-                `${theme.primary}18`,
-                'transparent',
-              ]}
-              start={{ x: 0.15, y: 0 }}
-              end={{ x: 0.85, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-          </Animated.View>
-        )}
-
-        {/* Border glow that pulses on shake */}
-        {liquid && motion && (
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFill,
-              styles.borderPulse,
-              { borderColor: theme.primary },
-              borderPulseStyle,
+        >
+          <LinearGradient
+            colors={[
+              'transparent',
+              `${theme.primary}12`,
+              `${theme.secondary}1A`,
+              `${theme.primary}12`,
+              'transparent',
             ]}
-            pointerEvents="none"
+            start={{ x: 0.15, y: 0 }}
+            end={{ x: 0.85, y: 1 }}
+            style={StyleSheet.absoluteFill}
           />
-        )}
+        </Animated.View>
+      )}
 
-        {children}
-      </View>
+      {liquid && motion && (
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            styles.borderPulse,
+            { borderColor: theme.primary },
+            borderPulseStyle,
+          ]}
+          pointerEvents="none"
+        />
+      )}
+
+      {children}
     </Animated.View>
   );
 
   if (onPress) {
     return (
-      <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
-        {cardContent}
+      <TouchableOpacity activeOpacity={0.75} onPress={onPress}>
+        {cardNode}
       </TouchableOpacity>
     );
   }
 
-  return cardContent;
+  return cardNode;
+}
+
+function withAlpha(color, alpha) {
+  if (!color) return `rgba(20, 20, 30, ${alpha})`;
+  if (color.startsWith('rgba')) {
+    return color.replace(/rgba\(([^)]+)\)/, (_, inner) => {
+      const parts = inner.split(',').map((p) => p.trim());
+      return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
+    });
+  }
+  if (color.startsWith('rgb(')) {
+    return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
+  }
+  if (color.startsWith('#')) {
+    const hex = color.slice(1);
+    const full = hex.length === 3
+      ? hex.split('').map((c) => c + c).join('')
+      : hex.slice(0, 6);
+    const r = parseInt(full.slice(0, 2), 16);
+    const g = parseInt(full.slice(2, 4), 16);
+    const b = parseInt(full.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return color;
 }
 
 const styles = StyleSheet.create({
-  cardOuter: {
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
   card: {
-    borderRadius: 24,
+    borderRadius: 22,
     padding: 18,
     borderWidth: 1,
     overflow: 'hidden',
@@ -221,7 +226,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   borderPulse: {
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1.5,
   },
 });
