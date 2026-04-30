@@ -10,7 +10,7 @@ const DEFAULT_LIMITS = {
     exportsPerMonth: 0,
     maxTodos: 50,
     maxDiaryEntries: 30,
-    allowedThemes: ['aurora', 'sunset', 'ocean', 'forest', 'midnight', 'rose'],
+    allowedThemes: ['aurora', 'sunset', 'ocean', 'forest', 'midnight', 'rose', 'daylight'],
     advancedAnalytics: false,
     pdfExport: false,
   },

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, RefreshControl,
-  TouchableOpacity, Image,
+  TouchableOpacity, Image, Platform, StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -152,6 +152,10 @@ export default function HomeScreen({ navigation }) {
   const pending = todoStats?.pending || 0;
   const completed = todoStats?.completed || 0;
   const entries = diaryStats?.total || 0;
+  const topInset = Math.max(
+    insets.top,
+    Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
+  );
 
   // Theme-aware glass for floating header buttons.
   const iconBtnBg = isLight ? 'rgba(15,23,42,0.05)' : theme.glass;
@@ -159,7 +163,7 @@ export default function HomeScreen({ navigation }) {
 
   // Bottom padding so the floating tab bar (70px dock + 18px float) doesn't
   // hide the last card.
-  const bottomPad = insets.bottom + 100;
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'android' ? 24 : 0) + 118;
 
   const quickActions = [
     {
@@ -217,7 +221,7 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Header */}
         <FadeInView delay={0}>
-          <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+          <View style={[styles.header, { paddingTop: topInset + 16 }]}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.greeting, { color: theme.textSecondary }]}>
                 {greeting.emoji} {greeting.text}
@@ -379,7 +383,11 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.actionGrid}>
             {quickActions.map((a) => (
               <View key={a.key} style={styles.actionTile}>
-                <PressScale style={styles.actionTileFill} onPress={a.onPress}>
+                <PressScale
+                  pressableStyle={styles.actionTileFill}
+                  style={styles.actionTileFill}
+                  onPress={a.onPress}
+                >
                   <LinearGradient
                     colors={a.gradient}
                     start={{ x: 0, y: 0 }}

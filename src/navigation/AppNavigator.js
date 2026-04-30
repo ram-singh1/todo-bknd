@@ -53,8 +53,8 @@ function TabNavigator() {
   // Honour bottom safe-area inset (gesture nav, home indicator) plus a
   // platform-specific minimum so the dock floats above the system area.
   // Android with a software nav bar reports inset=0, so bump the floor.
-  const bottomMin = Platform.OS === 'ios' ? 18 : 18;
-  const bottomOffset = Math.max(insets.bottom + 8, bottomMin);
+  const bottomMin = Platform.OS === 'ios' ? 18 : 36;
+  const bottomOffset = Math.max(insets.bottom + 10, bottomMin);
   const dockHeight = 70;
 
   return (

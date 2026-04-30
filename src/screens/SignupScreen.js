@@ -167,7 +167,7 @@ export default function SignupScreen({ navigation }) {
               { emoji: '🎁', title: '7-Day Free Pro Trial', desc: 'Full premium, no card needed' },
               { emoji: '📋', title: 'Smart Planning', desc: 'Fast task capture with helpful defaults' },
               { emoji: '🔒', title: 'End-to-End Encrypted', desc: 'Your diary, only yours' },
-              { emoji: '✨', title: '17 Liquid Themes', desc: 'A vibe for every mood' },
+              { emoji: '✨', title: 'Liquid Glass Themes', desc: 'A vibe for every mood' },
             ].map((b, i) => (
               <View key={i} style={styles.benefitRow}>
                 <Text style={styles.benefitEmoji}>{b.emoji}</Text>

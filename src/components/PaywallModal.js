@@ -12,7 +12,7 @@ const FEATURE_COPY = {
   theme: {
     emoji: '🎨',
     title: 'Unlock Liquid Themes',
-    subtitle: 'Get all 17 beautifully-crafted glass themes and change them anytime.',
+    subtitle: 'Get every beautifully-crafted glass theme and change them anytime.',
   },
   analytics: {
     emoji: '📊',
@@ -102,7 +102,7 @@ export default function PaywallModal({ navigationRef }) {
               {/* Feature list */}
               <ScrollView style={styles.featureList} showsVerticalScrollIndicator={false}>
                 {[
-                  { icon: 'sparkles', text: 'All 17 liquid glass themes' },
+                  { icon: 'sparkles', text: 'All liquid glass themes' },
                   { icon: 'stats-chart', text: 'Advanced productivity analytics' },
                   { icon: 'cloud-download-outline', text: 'Export to PDF, MD, CSV, JSON' },
                   { icon: 'image', text: 'Image background themes' },

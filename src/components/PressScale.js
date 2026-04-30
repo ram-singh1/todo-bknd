@@ -17,6 +17,7 @@ export default function PressScale({
   onPress,
   onLongPress,
   style,
+  pressableStyle,
   minScale = 0.96,
   disabled = false,
   hitSlop,
@@ -44,6 +45,7 @@ export default function PressScale({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
+      style={pressableStyle}
     >
       <Animated.View style={[animatedStyle, style]}>{children}</Animated.View>
     </Pressable>

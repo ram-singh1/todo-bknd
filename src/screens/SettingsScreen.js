@@ -377,7 +377,7 @@ export default function SettingsScreen({ navigation }) {
       title: 'About',
       rows: [
         { icon: 'information-circle-outline', label: 'Version', value: '2.0.0' },
-        { icon: 'heart-outline', label: 'Themes', value: '17 liquid glass' },
+        { icon: 'heart-outline', label: 'Themes', value: 'Liquid glass' },
         { icon: 'color-palette-outline', label: 'Appearance', value: 'Glass themes' },
       ],
     },

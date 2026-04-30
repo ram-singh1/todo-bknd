@@ -130,7 +130,7 @@ export default function LoginScreen({ navigation }) {
             {[
               { icon: '📋', text: 'Smart Tasks' },
               { icon: '🔒', text: 'Encrypted' },
-              { icon: '✨', text: '17 Themes' },
+              { icon: '✨', text: 'Glass Themes' },
             ].map((c, i) => (
               <View
                 key={i}

@@ -92,7 +92,7 @@ export default function SplashScreen({ navigation }) {
             {[
               { emoji: '📋', text: 'Smart Tasks' },
               { emoji: '🔒', text: 'Encrypted' },
-              { emoji: '✨', text: '17 Themes' },
+              { emoji: '✨', text: 'Glass Themes' },
             ].map((f, i) => (
               <View
                 key={i}

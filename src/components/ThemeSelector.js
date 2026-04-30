@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet, View, Text, Modal, TouchableOpacity, ScrollView, Image, Alert,
+  StyleSheet, View, Text, Modal, TouchableOpacity, ScrollView, Image, ImageBackground, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -32,7 +32,10 @@ export default function ThemeSelector({ visible, onClose, onSelect, currentTheme
     'cherryBloomScene', 'tropicalBeachScene', 'lavenderFieldsScene',
     'mistyMountainScene', 'velvetNightScene',
   ];
-  const imageKeys = ['mountainGlass', 'forestGlass', 'spaceGlass', 'cityGlass', 'desertGlass'];
+  const imageKeys = [
+    'mountainGlass', 'cityGlass', 'lakeSunriseGlass', 'rainGardenGlass',
+    'auroraOceanGlass', 'desertMoonGlass', 'forestGlass', 'spaceGlass', 'desertGlass',
+  ];
   const lightKeys = Object.keys(themes).filter((k) => getMode(themes[k]) === 'light');
 
   const filterByMode = (keys) => {
@@ -89,6 +92,35 @@ export default function ThemeSelector({ visible, onClose, onSelect, currentTheme
           const locked = !canUseTheme(key);
           const active = currentTheme === key;
           const isLight = getMode(t) === 'light';
+          const previewContent = (
+            <>
+              {!t.backgroundImage && <Text style={styles.themeEmoji}>{t.emoji}</Text>}
+              <View style={styles.themeColorRow}>
+                <View style={[styles.colorDot, { backgroundColor: t.primary }]} />
+                <View style={[styles.colorDot, { backgroundColor: t.secondary }]} />
+                <View style={[styles.colorDot, { backgroundColor: t.accent }]} />
+              </View>
+
+              <View style={styles.topBadges}>
+                <View style={[styles.modeBadge, { backgroundColor: isLight ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.45)' }]}>
+                  <Ionicons
+                    name={isLight ? 'sunny' : 'moon'}
+                    size={10}
+                    color={isLight ? '#0F172A' : '#fff'}
+                  />
+                </View>
+              </View>
+
+              {locked && (
+                <View style={styles.lockOverlay}>
+                  <View style={styles.lockBadge}>
+                    <Ionicons name="lock-closed" size={12} color="#fff" />
+                    <Text style={styles.lockText}>PRO</Text>
+                  </View>
+                </View>
+              )}
+            </>
+          );
           return (
             <TouchableOpacity
               key={key}
@@ -99,35 +131,21 @@ export default function ThemeSelector({ visible, onClose, onSelect, currentTheme
               onPress={() => handleSelect(key)}
               activeOpacity={0.8}
             >
-              <LinearGradient colors={t.colors} style={styles.themePreview}>
-                <Text style={styles.themeEmoji}>{t.emoji}</Text>
-                <View style={styles.themeColorRow}>
-                  <View style={[styles.colorDot, { backgroundColor: t.primary }]} />
-                  <View style={[styles.colorDot, { backgroundColor: t.secondary }]} />
-                  <View style={[styles.colorDot, { backgroundColor: t.accent }]} />
-                </View>
-
-                <View style={styles.topBadges}>
-                  <View style={[styles.modeBadge, { backgroundColor: isLight ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.45)' }]}>
-                    <Ionicons
-                      name={isLight ? 'sunny' : 'moon'}
-                      size={10}
-                      color={isLight ? '#0F172A' : '#fff'}
-                    />
-                  </View>
-                </View>
-
-                {locked && (
-                  <View style={styles.lockOverlay}>
-                    <View style={styles.lockBadge}>
-                      <Ionicons name="lock-closed" size={12} color="#fff" />
-                      <Text style={styles.lockText}>PRO</Text>
-                    </View>
-                  </View>
-                )}
-              </LinearGradient>
+              {t.backgroundImage ? (
+                <ImageBackground source={t.backgroundImage} resizeMode="cover" style={styles.themePreview}>
+                  <View
+                    pointerEvents="none"
+                    style={[StyleSheet.absoluteFill, { backgroundColor: t.overlay || 'rgba(0,0,0,0.32)' }]}
+                  />
+                  {previewContent}
+                </ImageBackground>
+              ) : (
+                <LinearGradient colors={t.colors} style={styles.themePreview}>
+                  {previewContent}
+                </LinearGradient>
+              )}
               <View style={[styles.themeInfo, { backgroundColor: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.3)' }]}>
-                <Text style={[styles.themeName, { color: theme.text }]}>{t.name}</Text>
+                <Text style={[styles.themeName, { color: theme.text }]} numberOfLines={1}>{t.name}</Text>
                 {active ? (
                   <Text style={[styles.activeLabel, { color: t.primary }]}>Active</Text>
                 ) : locked ? (
@@ -355,12 +373,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
+    overflow: 'hidden',
   },
   themeEmoji: { fontSize: 28, marginBottom: 6 },
   themeColorRow: { flexDirection: 'row', gap: 4 },
   colorDot: { width: 10, height: 10, borderRadius: 5 },
   themeInfo: { paddingVertical: 8, paddingHorizontal: 10 },
-  themeName: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  themeName: { fontSize: 13, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
   activeLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center', marginTop: 2 },
   topBadges: { position: 'absolute', top: 6, right: 6 },
   modeBadge: {
