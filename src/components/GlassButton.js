@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -31,38 +31,50 @@ export default function GlassButton({
       case 'primary':
         return {
           gradientColors: [theme.primary, theme.secondary],
+          backgroundColor: theme.primary,
           textColor: '#FFFFFF',
           borderColor: 'transparent',
+          raised: true,
         };
       case 'glass':
         return {
-          gradientColors: [theme.glass, theme.glass],
-          textColor: theme.text,
-          borderColor: theme.glassBorder,
+          gradientColors: [`${theme.primary}1F`, `${theme.secondary}18`],
+          backgroundColor: theme.inputBg,
+          textColor: theme.primary,
+          borderColor: `${theme.primary}66`,
+          raised: false,
         };
       case 'outline':
         return {
           gradientColors: ['transparent', 'transparent'],
+          backgroundColor: 'transparent',
           textColor: theme.primary,
           borderColor: theme.primary,
+          raised: false,
         };
       case 'danger':
         return {
           gradientColors: [theme.danger, '#DC2626'],
+          backgroundColor: theme.danger,
           textColor: '#FFFFFF',
           borderColor: 'transparent',
+          raised: true,
         };
       case 'ghost':
         return {
           gradientColors: ['transparent', 'transparent'],
+          backgroundColor: 'transparent',
           textColor: theme.textSecondary,
           borderColor: 'transparent',
+          raised: false,
         };
       default:
         return {
           gradientColors: [theme.primary, theme.secondary],
+          backgroundColor: theme.primary,
           textColor: '#FFFFFF',
           borderColor: 'transparent',
+          raised: true,
         };
     }
   };
@@ -83,12 +95,14 @@ export default function GlassButton({
         style={[
           styles.button,
           {
+            backgroundColor: v.backgroundColor,
             paddingVertical: s.paddingVertical,
             paddingHorizontal: s.paddingHorizontal,
             borderColor: v.borderColor,
             borderWidth: v.borderColor !== 'transparent' ? 1 : 0,
             opacity: disabled ? 0.6 : 1,
           },
+          v.raised ? styles.raisedButton : styles.flatButton,
         ]}
       >
         {loading ? (
@@ -122,19 +136,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     minHeight: 52,
+    overflow: 'hidden',
+  },
+  raisedButton: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
+    shadowOpacity: Platform.OS === 'android' ? 0 : 0.12,
     shadowRadius: 12,
-    elevation: 5,
+    elevation: Platform.OS === 'android' ? 0 : 5,
+  },
+  flatButton: {
+    shadowOpacity: 0,
+    elevation: 0,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   text: {
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0,
+    backgroundColor: 'transparent',
+    textAlign: 'center',
   },
 });

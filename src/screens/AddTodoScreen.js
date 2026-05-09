@@ -16,6 +16,7 @@ import GlassCard from '../components/GlassCard';
 import GlassInput from '../components/GlassInput';
 import GlassButton from '../components/GlassButton';
 import IconSelector from '../components/IconSelector';
+import AppIcon from '../components/AppIcon';
 import api from '../api/client';
 import { categoryConfig, priorityConfig } from '../themes';
 import { scheduleSmartRepeat } from '../utils/notifications';
@@ -46,23 +47,23 @@ function fileIconFor(mime, name = '') {
 
 // ── Smart defaults: emojis inferred from keywords in the task title ──
 const KEYWORD_EMOJI = [
-  [/call|phone|ring/i, '📞'],
-  [/meet(ing)?|zoom/i, '🤝'],
-  [/mail|email|reply/i, '📧'],
-  [/buy|shop|order|grocer/i, '🛒'],
-  [/pay|bill|invoice|bank/i, '💳'],
-  [/gym|workout|exercise|run|walk/i, '💪'],
-  [/eat|lunch|dinner|meal|food/i, '🍽️'],
-  [/sleep|rest|nap/i, '😴'],
-  [/read|book|study/i, '📚'],
-  [/write|draft|doc/i, '✍️'],
-  [/code|bug|deploy|git/i, '💻'],
-  [/clean|wash|laundry/i, '🧹'],
-  [/birthday|party|celebrat/i, '🎉'],
-  [/travel|flight|trip/i, '✈️'],
-  [/doctor|dentist|health|pill/i, '💊'],
-  [/water|drink/i, '💧'],
-  [/idea|brainstorm/i, '💡'],
+  [/call|phone|ring/i, 'call-outline'],
+  [/meet(ing)?|zoom/i, 'people-outline'],
+  [/mail|email|reply/i, 'mail-outline'],
+  [/buy|shop|order|grocer/i, 'cart-outline'],
+  [/pay|bill|invoice|bank/i, 'card-outline'],
+  [/gym|workout|exercise|run|walk/i, 'fitness-outline'],
+  [/eat|lunch|dinner|meal|food/i, 'restaurant-outline'],
+  [/sleep|rest|nap/i, 'moon-outline'],
+  [/read|book|study/i, 'library-outline'],
+  [/write|draft|doc/i, 'create-outline'],
+  [/code|bug|deploy|git/i, 'code-slash-outline'],
+  [/clean|wash|laundry/i, 'brush-outline'],
+  [/birthday|party|celebrat/i, 'sparkles-outline'],
+  [/travel|flight|trip/i, 'airplane-outline'],
+  [/doctor|dentist|health|pill/i, 'medical-outline'],
+  [/water|drink/i, 'water-outline'],
+  [/idea|brainstorm/i, 'bulb-outline'],
 ];
 
 const CATEGORY_KEYWORDS = [
@@ -78,7 +79,7 @@ const CATEGORY_KEYWORDS = [
 
 function inferEmoji(title) {
   for (const [re, e] of KEYWORD_EMOJI) if (re.test(title)) return e;
-  return '📝';
+  return 'document-text-outline';
 }
 
 function inferCategory(title) {
@@ -94,16 +95,16 @@ function inferPriority(title) {
 }
 
 const QUICK_DATES = [
-  { key: 'today', label: 'Today', emoji: '☀️', compute: () => {
+  { key: 'today', label: 'Today', icon: 'sunny-outline', compute: () => {
     const d = new Date(); d.setHours(23, 59, 0, 0); return d;
   }},
-  { key: 'tomorrow', label: 'Tomorrow', emoji: '🌤️', compute: () => {
+  { key: 'tomorrow', label: 'Tomorrow', icon: 'partly-sunny-outline', compute: () => {
     const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); return d;
   }},
-  { key: 'week', label: 'Next week', emoji: '📅', compute: () => {
+  { key: 'week', label: 'Next week', icon: 'calendar-outline', compute: () => {
     const d = new Date(); d.setDate(d.getDate() + 7); d.setHours(9, 0, 0, 0); return d;
   }},
-  { key: 'weekend', label: 'Weekend', emoji: '🛋️', compute: () => {
+  { key: 'weekend', label: 'Weekend', icon: 'bed-outline', compute: () => {
     const d = new Date();
     const daysToSat = (6 - d.getDay() + 7) % 7 || 7;
     d.setDate(d.getDate() + daysToSat); d.setHours(10, 0, 0, 0);
@@ -118,7 +119,7 @@ export default function AddTodoScreen({ navigation }) {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('general');
   const [priority, setPriority] = useState('medium');
-  const [emoji, setEmoji] = useState('📝');
+  const [emoji, setEmoji] = useState('document-text-outline');
   const [dueDate, setDueDate] = useState(null);
   const [quickDate, setQuickDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -220,7 +221,7 @@ export default function AddTodoScreen({ navigation }) {
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsMultipleSelection: true,
         selectionLimit: Math.min(ATTACH_BATCH, MAX_ATTACHMENTS - attachments.length),
         quality: 0.85,
@@ -251,7 +252,7 @@ export default function AddTodoScreen({ navigation }) {
         return;
       }
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         quality: 0.85,
         exif: false,
       });
@@ -419,7 +420,7 @@ export default function AddTodoScreen({ navigation }) {
                     onPress={() => { setAutoEmoji(false); setShowIconPicker(true); }}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.emojiText}>{emoji}</Text>
+                    <AppIcon name={emoji} size={28} color={theme.primary} />
                   </TouchableOpacity>
                   <TextInput
                     ref={titleRef}
@@ -453,7 +454,7 @@ export default function AddTodoScreen({ navigation }) {
                           },
                         ]}
                       >
-                        <Text style={styles.quickEmoji}>{qd.emoji}</Text>
+                        <AppIcon name={qd.icon} size={16} color={active ? theme.primary : theme.textMuted} />
                         <Text style={[styles.quickText, { color: active ? theme.primary : theme.textSecondary }]}>
                           {qd.label}
                         </Text>
@@ -529,7 +530,7 @@ export default function AddTodoScreen({ navigation }) {
                           ]}
                           onPress={() => { setAutoCategory(false); setCategory(key); }}
                         >
-                          <Text style={styles.pillEmoji}>{cat.emoji}</Text>
+                          <AppIcon name={cat.icon} size={15} color={active ? cat.color : theme.textMuted} />
                           <Text style={[styles.pillText, { color: active ? cat.color : theme.textMuted }]}>
                             {cat.label}
                           </Text>
@@ -943,8 +944,13 @@ const styles = StyleSheet.create({
   titleInput: {
     flex: 1,
     fontSize: 20,
+    lineHeight: 26,
     fontWeight: '700',
-    paddingVertical: 10,
+    minHeight: 56,
+    paddingTop: Platform.OS === 'android' ? 4 : 10,
+    paddingBottom: Platform.OS === 'android' ? 4 : 10,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   miniLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1.2, marginBottom: 8 },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },

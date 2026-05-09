@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, RefreshControl,
-  TouchableOpacity, Alert,
+  TouchableOpacity, Alert, Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import DraggableFlatList from 'react-native-draggable-flatlist';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import SwipeableRow from '../components/SwipeableRow';
 import SnoozeSheet from '../components/SnoozeSheet';
+import AppIcon from '../components/AppIcon';
 import { cancelSmartRepeat } from '../utils/notifications';
 import api from '../api/client';
 import { categoryConfig, priorityConfig } from '../themes';
@@ -23,6 +25,7 @@ const CATEGORIES = ['all', ...Object.keys(categoryConfig)];
 
 export default function TodoScreen({ navigation }) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState('All');
   const [category, setCategory] = useState('all');
@@ -30,6 +33,10 @@ export default function TodoScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [snoozeTarget, setSnoozeTarget] = useState(null);
+  const tabDockBottom = Math.max(insets.bottom + 10, Platform.OS === 'ios' ? 14 : 16);
+  const tabDockHeight = 72;
+  const fabBottom = tabDockBottom + tabDockHeight + 16;
+  const listBottomPad = fabBottom + 84;
 
   // Manual ordering only makes sense for the pending-all view; in any other
   // filter we sort by created/due so users see a stable, sensible order.
@@ -175,7 +182,7 @@ export default function TodoScreen({ navigation }) {
 
           <View style={styles.todoContent}>
             <View style={styles.todoTitleRow}>
-              <Text style={styles.todoEmoji}>{todo.emoji || cat.emoji}</Text>
+              <AppIcon name={todo.emoji || cat.icon} size={18} color={cat.color} style={styles.todoEmoji} />
               <Text
                 style={[
                   styles.todoTitle,
@@ -197,12 +204,12 @@ export default function TodoScreen({ navigation }) {
               </View>
               {todo.dueDate && (
                 <Text style={[styles.dueDate, { color: isOverdue ? theme.danger : theme.textMuted }]}>
-                  {isOverdue ? '⚠️ ' : '📅 '}
+                  {isOverdue ? 'Overdue ' : 'Due '}
                   {format(new Date(todo.dueDate), 'MMM d')}
                 </Text>
               )}
               {todo.reminder?.enabled && (
-                <Text style={[styles.reminderBadge, { color: theme.warning }]}>🔔</Text>
+                <AppIcon name="notifications-outline" size={14} color={theme.warning} />
               )}
               {todo.attachments?.length > 0 && (
                 <View style={[styles.attachBadge, { backgroundColor: `${theme.primary}25`, borderColor: `${theme.primary}55` }]}>
@@ -249,7 +256,7 @@ export default function TodoScreen({ navigation }) {
     <LiquidBackground>
       <View style={styles.headerSection}>
         <View>
-          <Text style={[styles.screenTitle, { color: theme.text }]}>My Tasks ✨</Text>
+          <Text style={[styles.screenTitle, { color: theme.text }]}>My Tasks</Text>
           {stats && (
             <Text style={[styles.statsText, { color: theme.textMuted }]}>
               {stats.pending} pending · {stats.completed} done · {stats.completionRate || 0}% complete
@@ -292,7 +299,7 @@ export default function TodoScreen({ navigation }) {
       {/* Category Pills */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll} contentContainerStyle={styles.filterContent}>
         {CATEGORIES.map((c) => {
-          const cat = categoryConfig[c] || { emoji: '🔰', label: 'All' };
+          const cat = categoryConfig[c] || { icon: 'apps-outline', label: 'All' };
           return (
             <TouchableOpacity
               key={c}
@@ -305,7 +312,7 @@ export default function TodoScreen({ navigation }) {
               ]}
               onPress={() => setCategory(c)}
             >
-              <Text style={styles.catEmoji}>{c === 'all' ? '🔰' : cat.emoji}</Text>
+              <AppIcon name={c === 'all' ? 'apps-outline' : cat.icon} size={15} color={category === c ? theme.primary : theme.textMuted} style={styles.catEmoji} />
               <Text style={[styles.catText, { color: category === c ? theme.primary : theme.textMuted }]}>
                 {c === 'all' ? 'All' : cat.label}
               </Text>
@@ -329,7 +336,7 @@ export default function TodoScreen({ navigation }) {
           if (canReorder) persistReorder(data);
         }}
         activationDistance={canReorder ? 8 : 9999}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: listBottomPad }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={async () => {
@@ -340,7 +347,7 @@ export default function TodoScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>📋</Text>
+            <AppIcon name="clipboard-outline" size={56} color={theme.textMuted} style={{ marginBottom: 16 }} />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>No tasks yet</Text>
             <Text style={[styles.emptyText, { color: theme.textMuted }]}>
               Tap + to create your first task.
@@ -350,7 +357,7 @@ export default function TodoScreen({ navigation }) {
       />
 
       {/* Floating Actions */}
-      <View style={styles.fabContainer}>
+      <View style={[styles.fabContainer, { bottom: fabBottom }]}>
         <TouchableOpacity
           style={[styles.fab]}
           onPress={() => navigation.navigate('AddTodo')}
@@ -396,7 +403,7 @@ const styles = StyleSheet.create({
   },
   catEmoji: { fontSize: 14, marginRight: 5 },
   catText: { fontSize: 12, fontWeight: '700' },
-  listContent: { paddingHorizontal: 20, paddingBottom: 120 },
+  listContent: { paddingHorizontal: 20 },
   reorderHint: {
     fontSize: 11, fontWeight: '600', textAlign: 'center',
     marginBottom: 8, paddingHorizontal: 20,
@@ -431,7 +438,7 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
   emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
   emptyText: { fontSize: 14, textAlign: 'center', lineHeight: 22 },
-  fabContainer: { position: 'absolute', bottom: 90, right: 20, alignItems: 'center', gap: 12 },
+  fabContainer: { position: 'absolute', right: 20, alignItems: 'center', gap: 12 },
   fabSecondary: {
     width: 48, height: 48, borderRadius: 16,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1,

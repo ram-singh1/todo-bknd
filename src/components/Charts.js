@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
+import AppIcon from './AppIcon';
 
 // ─────────────────────────────────────────────────────────────
 // BarChart — vertical bars with labels + optional value markers
@@ -78,7 +79,7 @@ export function BarChart({
 // HorizontalBar — labeled horizontal bar row
 // ─────────────────────────────────────────────────────────────
 export function HorizontalBar({
-  icon,           // emoji string
+  icon,
   label,
   value,
   maxValue,
@@ -95,7 +96,7 @@ export function HorizontalBar({
   return (
     <View style={styles.hbarRow}>
       <View style={styles.hbarHead}>
-        <Text style={{ fontSize: 15 }}>{icon}</Text>
+        <AppIcon name={icon} size={15} color={color || txt} />
         <Text style={[styles.hbarLabel, { color: txt }]} numberOfLines={1}>
           {label}
         </Text>

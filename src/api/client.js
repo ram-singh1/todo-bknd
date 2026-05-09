@@ -9,7 +9,7 @@ import axios from 'axios';
 // To override locally, create a .env file at frontend/ root:
 //   EXPO_PUBLIC_API_URL=http://192.168.1.42:5000/api
 // and restart `expo start`. EXPO_PUBLIC_* vars are inlined at build time.
-const DEFAULT_DEV_URL = 'http://172.31.41.64:5000/api';
+const DEFAULT_DEV_URL = 'http://10.14.85.64:5000/api';
 
 const getBaseURL = () => {
   return process.env.EXPO_PUBLIC_API_URL || DEFAULT_DEV_URL;

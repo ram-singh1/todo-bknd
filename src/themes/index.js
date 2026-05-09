@@ -943,29 +943,29 @@ export const themes = {
 };
 
 export const moodConfig = {
-  amazing: { emoji: '🤩', color: '#F59E0B', label: 'Amazing' },
-  happy: { emoji: '😊', color: '#10B981', label: 'Happy' },
-  neutral: { emoji: '😐', color: '#6B7280', label: 'Neutral' },
-  sad: { emoji: '😢', color: '#3B82F6', label: 'Sad' },
-  angry: { emoji: '😡', color: '#EF4444', label: 'Angry' },
-  anxious: { emoji: '😰', color: '#F97316', label: 'Anxious' },
-  excited: { emoji: '🥳', color: '#EC4899', label: 'Excited' },
-  grateful: { emoji: '🙏', color: '#8B5CF6', label: 'Grateful' },
-  tired: { emoji: '😴', color: '#64748B', label: 'Tired' },
-  loved: { emoji: '🥰', color: '#F43F5E', label: 'Loved' },
+  amazing: { icon: 'star-outline', color: '#F59E0B', label: 'Amazing' },
+  happy: { icon: 'happy-outline', color: '#10B981', label: 'Happy' },
+  neutral: { icon: 'remove-circle-outline', color: '#6B7280', label: 'Neutral' },
+  sad: { icon: 'sad-outline', color: '#3B82F6', label: 'Sad' },
+  angry: { icon: 'flame-outline', color: '#EF4444', label: 'Angry' },
+  anxious: { icon: 'pulse-outline', color: '#F97316', label: 'Anxious' },
+  excited: { icon: 'sparkles-outline', color: '#EC4899', label: 'Excited' },
+  grateful: { icon: 'heart-circle-outline', color: '#8B5CF6', label: 'Grateful' },
+  tired: { icon: 'moon-outline', color: '#64748B', label: 'Tired' },
+  loved: { icon: 'heart-outline', color: '#F43F5E', label: 'Loved' },
 };
 
 export const categoryConfig = {
-  general: { emoji: '📝', color: '#6B7280', label: 'General' },
-  work: { emoji: '💼', color: '#3B82F6', label: 'Work' },
-  personal: { emoji: '👤', color: '#8B5CF6', label: 'Personal' },
-  health: { emoji: '💪', color: '#10B981', label: 'Health' },
-  shopping: { emoji: '🛒', color: '#F97316', label: 'Shopping' },
-  study: { emoji: '📚', color: '#6366F1', label: 'Study' },
-  finance: { emoji: '💰', color: '#F59E0B', label: 'Finance' },
-  travel: { emoji: '✈️', color: '#0EA5E9', label: 'Travel' },
-  social: { emoji: '👥', color: '#EC4899', label: 'Social' },
-  urgent: { emoji: '🚨', color: '#EF4444', label: 'Urgent' },
+  general: { icon: 'document-text-outline', color: '#6B7280', label: 'General' },
+  work: { icon: 'briefcase-outline', color: '#3B82F6', label: 'Work' },
+  personal: { icon: 'person-outline', color: '#8B5CF6', label: 'Personal' },
+  health: { icon: 'fitness-outline', color: '#10B981', label: 'Health' },
+  shopping: { icon: 'cart-outline', color: '#F97316', label: 'Shopping' },
+  study: { icon: 'library-outline', color: '#6366F1', label: 'Study' },
+  finance: { icon: 'cash-outline', color: '#F59E0B', label: 'Finance' },
+  travel: { icon: 'airplane-outline', color: '#0EA5E9', label: 'Travel' },
+  social: { icon: 'people-outline', color: '#EC4899', label: 'Social' },
+  urgent: { icon: 'alert-circle-outline', color: '#EF4444', label: 'Urgent' },
 };
 
 export const priorityConfig = {

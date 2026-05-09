@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, RefreshControl,
-  TouchableOpacity, Image, Platform, StatusBar,
+  TouchableOpacity, Image, Platform, StatusBar, useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,7 +22,9 @@ import PremiumBadge from '../components/PremiumBadge';
 import FadeInView from '../components/FadeInView';
 import PressScale from '../components/PressScale';
 import AnimatedCounter from '../components/AnimatedCounter';
+import AppIcon from '../components/AppIcon';
 import api from '../api/client';
+import { categoryConfig } from '../themes';
 import { format } from 'date-fns';
 
 function ProgressRing({ percent, size = 120, stroke = 10, theme }) {
@@ -105,6 +107,7 @@ function ProgressRing({ percent, size = 120, stroke = 10, theme }) {
 export default function HomeScreen({ navigation }) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const isLight = theme.mode === 'light';
   const { user } = useAuth();
   const { isPremium, plan, daysUntilExpiry, trialUsed } = useSubscription();
@@ -161,9 +164,14 @@ export default function HomeScreen({ navigation }) {
   const iconBtnBg = isLight ? 'rgba(15,23,42,0.05)' : theme.glass;
   const iconBtnBorder = isLight ? 'rgba(15,23,42,0.10)' : theme.glassBorder;
 
-  // Bottom padding so the floating tab bar (70px dock + 18px float) doesn't
-  // hide the last card.
-  const bottomPad = Math.max(insets.bottom, Platform.OS === 'android' ? 24 : 0) + 118;
+  const tabDockBottom = Math.max(insets.bottom + 10, Platform.OS === 'ios' ? 14 : 16);
+  const tabDockHeight = 72;
+  const bottomPad = tabDockBottom + tabDockHeight + 36;
+  const horizontalPad = 18;
+  const actionGap = 10;
+  const actionTileWidth = Math.floor((width - horizontalPad * 2 - actionGap) / 2);
+  const headerActionWidth = 106;
+  const headerNameMaxWidth = Math.max(130, width - horizontalPad * 2 - headerActionWidth - 126);
 
   const quickActions = [
     {
@@ -222,15 +230,22 @@ export default function HomeScreen({ navigation }) {
         {/* Header */}
         <FadeInView delay={0}>
           <View style={[styles.header, { paddingTop: topInset + 16 }]}>
-            <View style={{ flex: 1 }}>
+            <View style={styles.headerTextBlock}>
               <Text style={[styles.greeting, { color: theme.textSecondary }]}>
                 {greeting.emoji} {greeting.text}
               </Text>
               <View style={styles.nameRow}>
-                <Text style={[styles.userName, { color: theme.text }]} numberOfLines={1}>
+                <Text
+                  style={[styles.userName, { color: theme.text, maxWidth: headerNameMaxWidth }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.86}
+                >
                   {user?.name || 'Friend'}
                 </Text>
-                <PremiumBadge size="small" />
+                <View style={styles.headerBadgeSlot}>
+                  <PremiumBadge size="small" />
+                </View>
               </View>
               <Text style={[styles.dateText, { color: theme.textMuted }]}>
                 {format(new Date(), 'EEEE · MMMM d')}
@@ -382,7 +397,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={[styles.sectionLabel, { color: theme.text }]}>Quick actions</Text>
           <View style={styles.actionGrid}>
             {quickActions.map((a) => (
-              <View key={a.key} style={styles.actionTile}>
+              <View key={a.key} style={[styles.actionTile, { width: actionTileWidth }]}>
                 <PressScale
                   pressableStyle={styles.actionTileFill}
                   style={styles.actionTileFill}
@@ -427,7 +442,13 @@ export default function HomeScreen({ navigation }) {
               <FadeInView key={todo._id} delay={260 + i * 40}>
                 <GlassCard variant="light" style={styles.todoItem}>
                   <View style={styles.todoRow}>
-                    <Text style={styles.todoEmoji}>{todo.emoji || '📝'}</Text>
+                    <AppIcon
+                      name={todo.emoji || categoryConfig[todo.category]?.icon}
+                      fallback="document-text-outline"
+                      size={22}
+                      color={categoryConfig[todo.category]?.color || theme.primary}
+                      style={styles.todoEmoji}
+                    />
                     <View style={styles.todoInfo}>
                       <Text style={[styles.todoTitle, { color: theme.text }]} numberOfLines={1}>
                         {todo.title}
@@ -493,18 +514,53 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 18,
+    alignItems: 'center',
+    marginBottom: 20,
+    minHeight: 104,
   },
-  greeting: { fontSize: 13, fontWeight: '600', letterSpacing: 0.2 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
-  userName: { fontSize: 26, fontWeight: '800', maxWidth: 220 },
-  dateText: { fontSize: 12, marginTop: 4, fontWeight: '600' },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  headerTextBlock: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 14,
+    justifyContent: 'center',
+  },
+  greeting: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '700',
+    letterSpacing: 0,
+    marginBottom: 4,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 34,
+  },
+  userName: {
+    fontSize: 27,
+    lineHeight: 33,
+    fontWeight: '800',
+    letterSpacing: 0,
+    flexShrink: 1,
+    includeFontPadding: false,
+  },
+  headerBadgeSlot: {
+    marginLeft: 10,
+    alignSelf: 'center',
+    flexShrink: 0,
+  },
+  dateText: { fontSize: 12, lineHeight: 17, marginTop: 5, fontWeight: '700' },
+  headerActions: {
+    width: 106,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexShrink: 0,
+  },
   iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -564,13 +620,13 @@ const styles = StyleSheet.create({
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
+    rowGap: 10,
     marginBottom: 22,
   },
-  // 2-column horizontal pill layout — guarantees labels like
-  // "New Task" / "Write Diary" / "Brain Dump" fit on a single line.
+  // 2-column horizontal pill layout with JS-calculated width. Percent widths
+  // plus flex gap collapse to one column on some native Android layouts.
   actionTile: {
-    width: '48.5%',
     marginBottom: 4,
     borderRadius: 22,
     overflow: 'hidden',

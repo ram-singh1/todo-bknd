@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
+import AppIcon from '../components/AppIcon';
 import api from '../api/client';
 import { moodConfig, priorityConfig } from '../themes';
 
@@ -223,7 +224,7 @@ export default function CalendarScreen({ navigation }) {
 
         {selectedTodos.length === 0 && selectedEntries.length === 0 ? (
           <GlassCard variant="light" style={{ padding: 20, alignItems: 'center' }}>
-            <Text style={{ fontSize: 44, marginBottom: 8 }}>🌿</Text>
+            <AppIcon name="leaf-outline" size={44} color={theme.primary} style={{ marginBottom: 8 }} />
             <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
               Nothing scheduled for this day
             </Text>
@@ -243,7 +244,7 @@ export default function CalendarScreen({ navigation }) {
                 <GlassCard key={todo._id} variant="light" style={styles.item}>
                   <View style={styles.itemRow}>
                     <View style={[styles.itemIcon, { backgroundColor: `${p.color}22` }]}>
-                      <Text style={{ fontSize: 18 }}>{todo.emoji || '📝'}</Text>
+                      <AppIcon name={todo.emoji} fallback="document-text-outline" size={18} color={p.color} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.itemTitle, { color: theme.text, textDecorationLine: todo.completed ? 'line-through' : 'none' }]} numberOfLines={1}>
@@ -273,7 +274,7 @@ export default function CalendarScreen({ navigation }) {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={1}>
-                        📖 {entry.title}
+                        {entry.title}
                       </Text>
                       <Text style={[styles.itemMeta, { color: theme.textMuted }]}>
                         {m.label} · {entry.wordCount || 0} words

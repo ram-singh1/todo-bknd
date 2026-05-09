@@ -3,19 +3,20 @@ import {
   StyleSheet, View, Text, Modal, TouchableOpacity,
   FlatList, Dimensions,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 const ICON_SETS = [
-  { label: 'Tasks', icons: ['📝', '✅', '📋', '🎯', '⚡', '🔥', '💡', '📌', '📍', '🚀'] },
-  { label: 'Work', icons: ['💼', '📊', '📈', '💻', '🖥️', '📱', '🔧', '⚙️', '🏢', '📑'] },
-  { label: 'Health', icons: ['💪', '🏋️', '🧘', '🏃', '🍎', '💊', '🏥', '❤️', '🌿', '🥗'] },
-  { label: 'Study', icons: ['📚', '📖', '✏️', '🎓', '🔬', '🧪', '🧑‍💻', '📐', '🗒️', '💭'] },
-  { label: 'Finance', icons: ['💰', '💳', '📉', '🏦', '💵', '🪙', '📊', '💹', '🏪', '🛒'] },
-  { label: 'Social', icons: ['👥', '🤝', '❤️', '💬', '🥳', '🎉', '🎁', '👋', '🫂', '🌍'] },
-  { label: 'Travel', icons: ['✈️', '🌍', '🗺️', '🏖️', '🏔️', '🚗', '🚢', '🏕️', '🗼', '🧳'] },
-  { label: 'Home', icons: ['🏠', '🛁', '🛋️', '🧹', '🍳', '🌱', '🐾', '🔑', '💡', '🛏️'] },
+  { label: 'Tasks', icons: ['document-text-outline', 'checkmark-circle-outline', 'clipboard-outline', 'radio-button-on-outline', 'flash-outline', 'flame-outline', 'bulb-outline', 'pin-outline', 'location-outline', 'rocket-outline'] },
+  { label: 'Work', icons: ['briefcase-outline', 'stats-chart-outline', 'trending-up-outline', 'laptop-outline', 'desktop-outline', 'phone-portrait-outline', 'construct-outline', 'settings-outline', 'business-outline', 'reader-outline'] },
+  { label: 'Health', icons: ['fitness-outline', 'barbell-outline', 'body-outline', 'walk-outline', 'nutrition-outline', 'medical-outline', 'medkit-outline', 'heart-outline', 'leaf-outline', 'restaurant-outline'] },
+  { label: 'Study', icons: ['library-outline', 'book-outline', 'pencil-outline', 'school-outline', 'flask-outline', 'beaker-outline', 'code-slash-outline', 'triangle-outline', 'newspaper-outline', 'chatbubble-ellipses-outline'] },
+  { label: 'Finance', icons: ['cash-outline', 'card-outline', 'trending-down-outline', 'business-outline', 'wallet-outline', 'ellipse-outline', 'stats-chart-outline', 'analytics-outline', 'storefront-outline', 'cart-outline'] },
+  { label: 'Social', icons: ['people-outline', 'hand-left-outline', 'heart-outline', 'chatbubble-outline', 'sparkles-outline', 'gift-outline', 'hand-right-outline', 'people-circle-outline', 'earth-outline'] },
+  { label: 'Travel', icons: ['airplane-outline', 'earth-outline', 'map-outline', 'sunny-outline', 'trail-sign-outline', 'car-outline', 'boat-outline', 'bonfire-outline', 'navigate-outline', 'bag-handle-outline'] },
+  { label: 'Home', icons: ['home-outline', 'water-outline', 'albums-outline', 'brush-outline', 'egg-outline', 'leaf-outline', 'paw-outline', 'key-outline', 'bulb-outline', 'bed-outline'] },
 ];
 
 export default function IconSelector({ visible, onClose, onSelect }) {
@@ -50,7 +51,7 @@ export default function IconSelector({ visible, onClose, onSelect }) {
                     style={[styles.iconBtn, { backgroundColor: theme.inputBg }]}
                     onPress={() => { onSelect(icon); onClose(); }}
                   >
-                    <Text style={styles.icon}>{icon}</Text>
+                    <Ionicons name={icon} size={24} color={theme.primary} />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -110,8 +111,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  icon: {
-    fontSize: 24,
   },
 });

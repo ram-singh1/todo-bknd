@@ -9,14 +9,15 @@ import { useTheme } from '../contexts/ThemeContext';
 import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
+import AppIcon from '../components/AppIcon';
 import api from '../api/client';
 import { priorityConfig } from '../themes';
 
 const PRESETS = [
-  { key: 'focus25', label: 'Focus', mins: 25, emoji: '🎯', type: 'focus' },
-  { key: 'focus50', label: 'Deep', mins: 50, emoji: '🔥', type: 'focus' },
-  { key: 'break5', label: 'Break', mins: 5, emoji: '☕', type: 'break' },
-  { key: 'break15', label: 'Long Break', mins: 15, emoji: '🌿', type: 'break' },
+  { key: 'focus25', label: 'Focus', mins: 25, icon: 'radio-button-on-outline', type: 'focus' },
+  { key: 'focus50', label: 'Deep', mins: 50, icon: 'flame-outline', type: 'focus' },
+  { key: 'break5', label: 'Break', mins: 5, icon: 'cafe-outline', type: 'break' },
+  { key: 'break15', label: 'Long Break', mins: 15, icon: 'leaf-outline', type: 'break' },
 ];
 
 function formatTime(s) {
@@ -177,7 +178,7 @@ export default function FocusScreen({ navigation }) {
                   },
                 ]}
               >
-                <Text style={styles.presetEmoji}>{p.emoji}</Text>
+                <AppIcon name={p.icon} size={18} color={active ? theme.primary : theme.textMuted} style={styles.presetEmoji} />
                 <Text style={[styles.presetLabel, { color: active ? theme.primary : theme.textSecondary }]}>
                   {p.label}
                 </Text>
@@ -210,7 +211,7 @@ export default function FocusScreen({ navigation }) {
                 {formatTime(secondsLeft)}
               </Text>
               <Text style={[styles.timerLabel, { color: theme.textMuted }]}>
-                {preset.emoji} {preset.label} · {Math.round(progress * 100)}%
+                {preset.label} · {Math.round(progress * 100)}%
               </Text>
             </View>
 
@@ -256,19 +257,19 @@ export default function FocusScreen({ navigation }) {
         {/* Session stats */}
         <View style={styles.statsRow}>
           <GlassCard variant="light" style={styles.statTile}>
-            <Text style={styles.statEmoji}>🍅</Text>
+            <AppIcon name="timer-outline" size={24} color={theme.primary} style={styles.statEmoji} />
             <Text style={[styles.statValue, { color: theme.text }]}>{completedSessions}</Text>
             <Text style={[styles.statLabel, { color: theme.textMuted }]}>Sessions</Text>
           </GlassCard>
           <GlassCard variant="light" style={styles.statTile}>
-            <Text style={styles.statEmoji}>⏱️</Text>
+            <AppIcon name="time-outline" size={24} color={theme.primary} style={styles.statEmoji} />
             <Text style={[styles.statValue, { color: theme.text }]}>
               {Math.round(totalFocusSec / 60)}
             </Text>
             <Text style={[styles.statLabel, { color: theme.textMuted }]}>Min focused</Text>
           </GlassCard>
           <GlassCard variant="light" style={styles.statTile}>
-            <Text style={styles.statEmoji}>🎯</Text>
+            <AppIcon name="radio-button-on-outline" size={24} color={theme.primary} style={styles.statEmoji} />
             <Text style={[styles.statValue, { color: theme.text }]}>
               {selectedTodo ? '1' : '0'}
             </Text>
@@ -284,7 +285,7 @@ export default function FocusScreen({ navigation }) {
         {selectedTodo ? (
           <GlassCard variant="accent" glow style={{ marginBottom: 14 }}>
             <View style={styles.linkedRow}>
-              <Text style={{ fontSize: 24 }}>{selectedTodo.emoji || '📝'}</Text>
+              <AppIcon name={selectedTodo.emoji} fallback="document-text-outline" size={24} color={theme.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.linkedTitle, { color: theme.text }]} numberOfLines={1}>
                   {selectedTodo.title}
@@ -321,7 +322,7 @@ export default function FocusScreen({ navigation }) {
         </Text>
         {todos.length === 0 ? (
           <GlassCard variant="light" style={{ alignItems: 'center', padding: 20 }}>
-            <Text style={{ fontSize: 40, marginBottom: 8 }}>🏁</Text>
+            <AppIcon name="flag-outline" size={40} color={theme.primary} style={{ marginBottom: 8 }} />
             <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
               No pending tasks. Enjoy the focus time!
             </Text>
@@ -339,7 +340,7 @@ export default function FocusScreen({ navigation }) {
               >
                 <View style={styles.todoRow}>
                   <View style={[styles.todoDot, { backgroundColor: p.color }]} />
-                  <Text style={styles.todoEmoji}>{todo.emoji || '📝'}</Text>
+                  <AppIcon name={todo.emoji} fallback="document-text-outline" size={18} color={p.color} style={styles.todoEmoji} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.todoTitle, { color: theme.text }]} numberOfLines={1}>
                       {todo.title}

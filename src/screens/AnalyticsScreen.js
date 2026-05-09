@@ -11,6 +11,7 @@ import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import PremiumBadge from '../components/PremiumBadge';
+import AppIcon from '../components/AppIcon';
 import {
   BarChart,
   HorizontalBar,
@@ -37,7 +38,7 @@ function SectionTitle({ icon, title, subtitle, color, subColor }) {
   const { theme } = useTheme();
   return (
     <View style={styles.sectionTitleRow}>
-      <Text style={styles.sectionIcon}>{icon}</Text>
+      <AppIcon name={icon} size={18} color={color || theme.text} style={styles.sectionIcon} />
       <View style={{ flex: 1 }}>
         <Text style={[styles.sectionTitle, { color }]}>{title}</Text>
         {subtitle && (
@@ -363,11 +364,11 @@ export default function AnalyticsScreen({ navigation }) {
               color={theme.text}
             />
             {productivity.byCategory.map((c, i) => {
-              const cat = categoryConfig[c.category] || { emoji: '📁', label: c.category, color: '#888' };
+              const cat = categoryConfig[c.category] || { icon: 'folder-outline', label: c.category, color: '#888' };
               return (
                 <HorizontalBar
                   key={i}
-                  icon={cat.emoji}
+                  icon={cat.icon}
                   label={cat.label}
                   value={c.count}
                   maxValue={maxCategory}
@@ -395,7 +396,7 @@ export default function AnalyticsScreen({ navigation }) {
               return (
                 <HorizontalBar
                   key={i}
-                  icon={p.priority === 'critical' ? '🚨' : p.priority === 'high' ? '⚡' : p.priority === 'medium' ? '📍' : '🌱'}
+                  icon={p.priority === 'critical' ? 'alert-circle-outline' : p.priority === 'high' ? 'flash-outline' : p.priority === 'medium' ? 'location-outline' : 'leaf-outline'}
                   label={pri.label}
                   value={p.count}
                   maxValue={maxPriority}
@@ -423,11 +424,11 @@ export default function AnalyticsScreen({ navigation }) {
               color={theme.text}
             />
             {moodTrends.distribution.map((m, i) => {
-              const mood = moodConfig[m.mood] || { emoji: '💭', label: m.mood, color: '#888' };
+              const mood = moodConfig[m.mood] || { icon: 'chatbubble-ellipses-outline', label: m.mood, color: '#888' };
               return (
                 <HorizontalBar
                   key={i}
-                  icon={mood.emoji}
+                  icon={mood.icon}
                   label={mood.label}
                   value={m.count}
                   maxValue={maxMood}

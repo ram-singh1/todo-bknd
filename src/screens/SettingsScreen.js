@@ -191,6 +191,39 @@ export default function SettingsScreen({ navigation }) {
       ],
     },
     {
+      title: 'Modules',
+      rows: [
+        {
+          icon: 'wallet-outline',
+          label: 'Budget & Expenses',
+          onPress: () => navigation.navigate('Budget'),
+          arrow: true,
+          accent: theme.success,
+        },
+        {
+          icon: 'flame-outline',
+          label: 'Habits',
+          onPress: () => navigation.navigate('Habits'),
+          arrow: true,
+          accent: '#F97316',
+        },
+        {
+          icon: 'fitness-outline',
+          label: 'Health Tracker',
+          onPress: () => navigation.navigate('Health'),
+          arrow: true,
+          accent: '#10B981',
+        },
+        {
+          icon: 'construct-outline',
+          label: 'Problem-solving Tools',
+          onPress: () => navigation.navigate('Tools'),
+          arrow: true,
+          accent: '#A78BFA',
+        },
+      ],
+    },
+    {
       title: 'Tools',
       rows: [
         {
@@ -221,6 +254,12 @@ export default function SettingsScreen({ navigation }) {
           icon: 'bar-chart-outline',
           label: 'Insights',
           onPress: () => navigation.navigate('Analytics'),
+          arrow: true,
+        },
+        {
+          icon: 'trash-bin-outline',
+          label: 'Trash',
+          onPress: () => navigation.navigate('Trash'),
           arrow: true,
         },
       ],

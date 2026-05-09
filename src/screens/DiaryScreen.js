@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import LiquidBackground from '../components/LiquidBackground';
 import GlassCard from '../components/GlassCard';
+import AppIcon from '../components/AppIcon';
 import api from '../api/client';
 import { moodConfig } from '../themes';
 import { format } from 'date-fns';
@@ -86,7 +87,7 @@ export default function DiaryScreen({ navigation }) {
               {entry.title}
             </Text>
             <View style={styles.entryMetaRow}>
-              <Text style={styles.moodEmoji}>{entry.moodEmoji || mood.emoji}</Text>
+              <AppIcon name={entry.moodEmoji || mood.icon} size={16} color={mood.color} style={styles.moodEmoji} />
               <Text style={[styles.moodLabel, { color: mood.color }]}>{mood.label}</Text>
               {entry.tags?.length > 0 && (
                 <Text style={[styles.tagText, { color: theme.textMuted }]}>
@@ -111,21 +112,21 @@ export default function DiaryScreen({ navigation }) {
           {entry.wordCount > 0 && (
             <View style={[styles.footerBadge, { backgroundColor: theme.inputBg }]}>
               <Text style={[styles.footerText, { color: theme.textMuted }]}>
-                📝 {entry.wordCount} words
+                {entry.wordCount} words
               </Text>
             </View>
           )}
           {entry.readingTime > 0 && (
             <View style={[styles.footerBadge, { backgroundColor: theme.inputBg }]}>
               <Text style={[styles.footerText, { color: theme.textMuted }]}>
-                ⏱️ {entry.readingTime} min read
+                {entry.readingTime} min read
               </Text>
             </View>
           )}
           {entry.images?.length > 0 && (
             <View style={[styles.footerBadge, { backgroundColor: theme.inputBg }]}>
               <Text style={[styles.footerText, { color: theme.textMuted }]}>
-                📷 {entry.images.length}
+                {entry.images.length} images
               </Text>
             </View>
           )}
@@ -141,10 +142,10 @@ export default function DiaryScreen({ navigation }) {
     <LiquidBackground>
       {/* Header */}
       <Animated.View style={[styles.headerSection, { opacity: headerFade }]}>
-        <Text style={[styles.screenTitle, { color: theme.text }]}>My Diary 📔</Text>
+        <Text style={[styles.screenTitle, { color: theme.text }]}>My Diary</Text>
         {stats && (
           <Text style={[styles.statsText, { color: theme.textMuted }]}>
-            {stats.total} entries · {stats.streak} day streak 🔥
+            {stats.total} entries · {stats.streak} day streak
           </Text>
         )}
       </Animated.View>
@@ -156,7 +157,7 @@ export default function DiaryScreen({ navigation }) {
             const m = moodConfig[mood] || moodConfig.neutral;
             return (
               <View key={mood} style={[styles.moodStat, { backgroundColor: `${m.color}15` }]}>
-                <Text style={styles.moodStatEmoji}>{m.emoji}</Text>
+                <AppIcon name={m.icon} size={18} color={m.color} style={styles.moodStatEmoji} />
                 <Text style={[styles.moodStatCount, { color: m.color }]}>{count}</Text>
               </View>
             );
@@ -169,7 +170,7 @@ export default function DiaryScreen({ navigation }) {
         horizontal
         data={MOOD_FILTERS}
         renderItem={({ item }) => {
-          const m = moodConfig[item] || { emoji: '🔰', label: 'All', color: theme.primary };
+          const m = moodConfig[item] || { icon: 'apps-outline', label: 'All', color: theme.primary };
           return (
             <TouchableOpacity
               style={[
@@ -181,7 +182,7 @@ export default function DiaryScreen({ navigation }) {
               ]}
               onPress={() => setMoodFilter(item)}
             >
-              <Text style={styles.moodPillEmoji}>{item === 'all' ? '🔰' : m.emoji}</Text>
+              <AppIcon name={item === 'all' ? 'apps-outline' : m.icon} size={15} color={moodFilter === item ? m.color : theme.textMuted} style={styles.moodPillEmoji} />
               <Text style={[styles.moodPillText, { color: moodFilter === item ? m.color : theme.textMuted }]}>
                 {item === 'all' ? 'All' : m.label}
               </Text>

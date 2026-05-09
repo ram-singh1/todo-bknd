@@ -10,32 +10,32 @@ import GlassButton from './GlassButton';
 
 const FEATURE_COPY = {
   theme: {
-    emoji: '🎨',
+    icon: 'color-palette-outline',
     title: 'Unlock Liquid Themes',
     subtitle: 'Get every beautifully-crafted glass theme and change them anytime.',
   },
   analytics: {
-    emoji: '📊',
+    icon: 'stats-chart-outline',
     title: 'Advanced Analytics',
     subtitle: 'Unlock productivity charts, mood trends, and deeper insights tailored to you.',
   },
   export: {
-    emoji: '📄',
+    icon: 'document-text-outline',
     title: 'Export Your Data',
     subtitle: 'Download your diary and tasks as PDF, Markdown, CSV, or JSON.',
   },
   todos: {
-    emoji: '✅',
+    icon: 'checkmark-circle-outline',
     title: 'Unlimited Tasks',
     subtitle: 'Free plan caps tasks at 50. Upgrade for unlimited todos.',
   },
   diary: {
-    emoji: '📖',
+    icon: 'book-outline',
     title: 'Unlimited Journal',
     subtitle: 'Free plan allows 30 diary entries. Upgrade to write forever.',
   },
   default: {
-    emoji: '⭐',
+    icon: 'star-outline',
     title: 'Premium Feature',
     subtitle: 'Unlock this and every premium perk with a Pro subscription.',
   },
@@ -89,7 +89,7 @@ export default function PaywallModal({ navigationRef }) {
                   end={{ x: 1, y: 1 }}
                 />
                 <View style={[styles.emojiRing, { borderColor: `${theme.primary}40`, backgroundColor: `${theme.primary}15` }]}>
-                  <Text style={styles.emoji}>{copy.emoji}</Text>
+                  <Ionicons name={copy.icon} size={38} color={theme.primary} />
                 </View>
                 <Text style={[styles.title, { color: theme.text }]}>
                   {copy.title}
@@ -195,7 +195,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, marginBottom: 16,
   },
-  emoji: { fontSize: 40 },
   title: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 8 },
   subtitle: { fontSize: 14, textAlign: 'center', lineHeight: 20, paddingHorizontal: 8 },
   featureList: { maxHeight: 240, marginBottom: 18 },
